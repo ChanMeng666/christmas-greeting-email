@@ -1,0 +1,35 @@
+{
+  "name": "christmas-greeting-email",
+  "version": "1.0.0",
+  "description": "Neobrutalism-styled Christmas greeting email sender using Resend",
+  "type": "module",
+  "scripts": {
+    "preview": "tsx src/preview.ts",
+    "send": "tsx src/index.ts",
+    "send:test": "tsx src/index.ts --test",
+    "contacts:list": "tsx src/contacts.ts list",
+    "contacts:add": "tsx src/contacts.ts add"
+  },
+  "keywords": [
+    "christmas",
+    "email",
+    "resend",
+    "neobrutalism"
+  ],
+  "author": "Chan Meng",
+  "license": "MIT",
+  "dependencies": {
+    "@react-email/components": "^0.0.31",
+    "@react-email/render": "^1.0.3",
+    "dotenv": "^16.4.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "resend": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
