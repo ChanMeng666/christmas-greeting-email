@@ -16,6 +16,7 @@ interface ChristmasEmailProps {
   recipientName?: string;
   personalImageUrl?: string;
   festiveImageUrl?: string;
+  stickerImageUrl?: string;
 }
 
 // ============================================
@@ -263,6 +264,23 @@ const styles = {
     letterSpacing: '3px',
     textTransform: 'uppercase' as const,
   },
+  // Sticker styles - tilted decorative image positioned at bottom-right
+  stickerWrapper: {
+    position: 'absolute' as const,
+    bottom: '-30px',
+    right: '-20px',
+    transform: 'rotate(12deg)',
+    WebkitTransform: 'rotate(12deg)',
+    MozTransform: 'rotate(12deg)',
+    msTransform: 'rotate(12deg)',
+    zIndex: 10,
+  },
+  stickerImage: {
+    maxWidth: '280px',
+    width: '280px',
+    height: 'auto',
+    filter: 'drop-shadow(5px 5px 10px rgba(0,0,0,0.3))',
+  },
   greetingSection: {
     backgroundColor: colors.christmasGreenLight,
     backgroundImage: polkaDotPatterns.creamOnGreen,
@@ -323,6 +341,8 @@ const styles = {
     border: `4px solid ${colors.black}`,
     padding: '25px',
     marginBottom: '25px',
+    position: 'relative' as const,
+    overflow: 'visible',
   },
   wishesTitle: {
     color: colors.christmasRedDark,
@@ -437,6 +457,7 @@ export const ChristmasEmail: React.FC<ChristmasEmailProps> = ({
   recipientName = 'Friend',
   personalImageUrl = config.personalImageUrl,
   festiveImageUrl = config.festiveImageUrl,
+  stickerImageUrl = config.stickerImageUrl,
 }) => {
   const currentYear = new Date().getFullYear();
   const nextYear = currentYear + 1;
@@ -596,6 +617,17 @@ export const ChristmasEmail: React.FC<ChristmasEmailProps> = ({
               <Text style={styles.wishItem}>
                 <Icon type="star" size={14} color={colors.gold} /> Exciting new adventures in {nextYear}
               </Text>
+
+              {/* Decorative Sticker - positioned at bottom-right corner */}
+              {stickerImageUrl && (
+                <div style={styles.stickerWrapper}>
+                  <Img
+                    src={stickerImageUrl}
+                    alt="Christmas Sticker"
+                    style={styles.stickerImage}
+                  />
+                </div>
+              )}
             </div>
           </Section>
 
