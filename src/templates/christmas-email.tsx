@@ -20,58 +20,21 @@ interface ChristmasEmailProps {
 }
 
 // ============================================
-// SVG Icons - Professional Christmas Elements
+// Emoji Icons - Email-safe decorations
 // ============================================
 
-// Helper function to create data URI for SVG icons
-const createSvgDataUri = (svgContent: string): string => {
-  return `data:image/svg+xml,${encodeURIComponent(svgContent)}`;
-};
-
-// SVG icon definitions
-const svgIcons = {
-  christmasTree: (size: number, color: string) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}"><path d="M12 2L4 14h3l-2 4h4v4h6v-4h4l-2-4h3L12 2zm0 3.5L16.5 12h-2l1.5 3h-3v3h-2v-3H8l1.5-3h-2L12 5.5z"/></svg>`,
-
-  snowflake: (size: number, color: string) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}"><path d="M11 1v4.07A5.9 5.9 0 009.5 5.5L7.38 3.38 6 4.75l2.12 2.12c-.2.32-.37.66-.51 1.02L4.07 6.5 3.5 8.08l3.54 1.4a6 6 0 000 1.04L3.5 11.92l.57 1.58L7.6 12.1c.14.36.31.7.51 1.02L6 15.25l1.38 1.37L9.5 14.5c.46.27.97.46 1.5.57V19h2v-3.93a5.9 5.9 0 001.5-.57l2.12 2.12 1.38-1.37-2.12-2.13c.2-.32.37-.66.51-1.02l3.54 1.4.57-1.58-3.54-1.4a6 6 0 000-1.04l3.54-1.4-.57-1.58-3.54 1.4c-.14-.36-.31-.7-.51-1.02L18 4.75l-1.38-1.37-2.12 2.12A5.9 5.9 0 0013 5.07V1h-2zm1 6a4 4 0 110 8 4 4 0 010-8z"/></svg>`,
-
-  gift: (size: number, color: string) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}"><path d="M20 7h-1.5A3.5 3.5 0 0015 3.5 3.5 3.5 0 0012 6a3.5 3.5 0 00-3-2.5A3.5 3.5 0 005.5 7H4a2 2 0 00-2 2v2a1 1 0 001 1h1v7a2 2 0 002 2h12a2 2 0 002-2v-7h1a1 1 0 001-1V9a2 2 0 00-2-2zm-8 13H6v-7h6v7zm0-9H4V9h8v2zm2 9v-7h6v7h-6zm6-9h-8V9h8v2zM15 7a1.5 1.5 0 01-1.5-1.5A1.5 1.5 0 0115 4a1.5 1.5 0 011.5 1.5A1.5 1.5 0 0115 7zM9 4a1.5 1.5 0 011.5 1.5A1.5 1.5 0 019 7a1.5 1.5 0 01-1.5-1.5A1.5 1.5 0 019 4z"/></svg>`,
-
-  star: (size: number, color: string) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
-
-  bell: (size: number, color: string) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}"><path d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>`,
-
-  holly: (size: number, color: string) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"><path fill="${color}" d="M17 3c-1.5 0-2.9.7-3.8 1.8-.9-1.1-2.3-1.8-3.8-1.8-2.8 0-5 2.2-5 5 0 .7.1 1.4.4 2H3v2h2.6c.9 1.2 2.3 2 3.9 2h.5v8h2v-8h.5c1.6 0 3-.8 3.9-2H19v-2h-1.8c.3-.6.4-1.3.4-2 0-2.8-2.2-5-5-5z"/><circle fill="#DC2626" cx="9" cy="6" r="1.5"/><circle fill="#DC2626" cx="15" cy="6" r="1.5"/><circle fill="#DC2626" cx="12" cy="8" r="1.5"/></svg>`,
-
-  linkedin: (size: number, color: string) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>`,
-
-  heart: (size: number, color: string) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
-
-  ornament: (size: number, color: string) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}"><circle cx="12" cy="14" r="7"/><rect x="10" y="3" width="4" height="4" rx="1"/><path d="M12 7v3" stroke="${color}" stroke-width="2"/></svg>`,
-};
-
-// Icon component factory
-const Icon = ({ type, size = 24, color = '#000' }: { type: keyof typeof svgIcons; size?: number; color?: string }) => {
-  const svgFn = svgIcons[type];
-  if (!svgFn) return null;
-
-  return (
-    <img
-      src={createSvgDataUri(svgFn(size, color))}
-      alt=""
-      width={size}
-      height={size}
-      style={{ display: 'inline-block', verticalAlign: 'middle' }}
-    />
-  );
+const icons = {
+  christmasTree: '🎄',
+  snowflake: '❄️',
+  gift: '🎁',
+  star: '⭐',
+  sparkle: '✨',
+  bell: '🔔',
+  holly: '🎄',
+  heart: '❤️',
+  ribbon: '🎀',
+  santa: '🎅',
+  candy: '🍬',
 };
 
 // ============================================
@@ -92,23 +55,6 @@ const colors = {
   warmWhite: '#FFFBEB',
   white: '#FFFFFF',
   darkBg: '#1a1a2e',
-};
-
-// ============================================
-// Polka Dot Background Patterns
-// ============================================
-
-const createPolkaDotPattern = (dotColor: string, bgColor: string, dotSize: number = 4, spacing: number = 20): string => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${spacing}" height="${spacing}" viewBox="0 0 ${spacing} ${spacing}"><rect fill="${bgColor}" width="${spacing}" height="${spacing}"/><circle fill="${dotColor}" cx="${spacing/2}" cy="${spacing/2}" r="${dotSize}"/></svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-};
-
-const polkaDotPatterns = {
-  greenOnCream: createPolkaDotPattern('#16A34A', '#FEF3C7', 3, 16),
-  redOnCream: createPolkaDotPattern('#DC2626', '#FEF3C7', 3, 16),
-  goldOnRed: createPolkaDotPattern('#F59E0B', '#DC2626', 4, 20),
-  whiteOnGreen: createPolkaDotPattern('#FFFFFF', '#16A34A', 3, 18),
-  creamOnGreen: createPolkaDotPattern('#FEF3C7', '#DCFCE7', 4, 18),
 };
 
 // ============================================
@@ -135,18 +81,16 @@ const styles = {
     textAlign: 'center' as const,
     borderBottom: `4px solid ${colors.black}`,
   },
+  topBannerText: {
+    fontSize: '18px',
+    margin: 0,
+    letterSpacing: '8px',
+  },
   header: {
     backgroundColor: colors.christmasRed,
-    backgroundImage: polkaDotPatterns.goldOnRed,
     padding: '40px 30px',
     textAlign: 'center' as const,
     borderBottom: `4px solid ${colors.black}`,
-  },
-  headerTextBox: {
-    backgroundColor: colors.christmasRed,
-    display: 'inline-block',
-    padding: '15px 30px',
-    borderRadius: '4px',
   },
   headerSubtitle: {
     color: colors.goldLight,
@@ -158,7 +102,7 @@ const styles = {
   },
   headerTitle: {
     color: colors.white,
-    fontSize: '48px',
+    fontSize: '42px',
     fontWeight: 900,
     margin: '0 0 10px 0',
     textTransform: 'uppercase' as const,
@@ -166,32 +110,31 @@ const styles = {
     textShadow: `4px 4px 0px ${colors.black}`,
     lineHeight: 1.1,
   },
-  headerYearBox: {
-    backgroundColor: colors.christmasRedDark,
-    display: 'inline-block',
-    padding: '8px 20px',
-    borderRadius: '4px',
-    marginTop: '10px',
-  },
   headerYear: {
     color: colors.gold,
     fontSize: '24px',
     fontWeight: 700,
-    margin: 0,
+    margin: '15px 0 0 0',
     letterSpacing: '8px',
   },
   iconBar: {
     backgroundColor: colors.cream,
-    padding: '20px',
+    padding: '15px',
     textAlign: 'center' as const,
     borderBottom: `4px solid ${colors.black}`,
+    fontSize: '28px',
+    letterSpacing: '12px',
   },
   imageSection: {
     padding: '35px 30px',
     textAlign: 'center' as const,
     backgroundColor: colors.christmasRedLight,
-    backgroundImage: polkaDotPatterns.redOnCream,
     borderBottom: `4px solid ${colors.black}`,
+  },
+  imageSectionIcons: {
+    fontSize: '20px',
+    letterSpacing: '8px',
+    marginBottom: '15px',
   },
   imageContainer: {
     border: `6px solid ${colors.black}`,
@@ -220,12 +163,10 @@ const styles = {
     boxShadow: `4px 4px 0px ${colors.black}`,
     letterSpacing: '1px',
   },
-  // Second image section (green theme)
   festiveImageSection: {
     padding: '35px 30px',
     textAlign: 'center' as const,
     backgroundColor: colors.christmasGreenLight,
-    backgroundImage: polkaDotPatterns.creamOnGreen,
     borderBottom: `4px solid ${colors.black}`,
   },
   festiveImageContainer: {
@@ -248,7 +189,6 @@ const styles = {
     boxShadow: `4px 4px 0px ${colors.black}`,
     letterSpacing: '1px',
   },
-  // Decorative ribbon divider
   ribbonDivider: {
     backgroundColor: colors.christmasRed,
     padding: '12px 20px',
@@ -264,26 +204,8 @@ const styles = {
     letterSpacing: '3px',
     textTransform: 'uppercase' as const,
   },
-  // Sticker styles - tilted decorative image positioned at bottom-right
-  stickerWrapper: {
-    position: 'absolute' as const,
-    bottom: '-30px',
-    right: '-20px',
-    transform: 'rotate(12deg)',
-    WebkitTransform: 'rotate(12deg)',
-    MozTransform: 'rotate(12deg)',
-    msTransform: 'rotate(12deg)',
-    zIndex: 10,
-  },
-  stickerImage: {
-    maxWidth: '280px',
-    width: '280px',
-    height: 'auto',
-    filter: 'drop-shadow(5px 5px 10px rgba(0,0,0,0.3))',
-  },
   greetingSection: {
     backgroundColor: colors.christmasGreenLight,
-    backgroundImage: polkaDotPatterns.creamOnGreen,
     padding: '30px',
     borderBottom: `4px solid ${colors.black}`,
   },
@@ -342,7 +264,15 @@ const styles = {
     padding: '25px',
     marginBottom: '25px',
     position: 'relative' as const,
-    overflow: 'visible',
+  },
+  stickerContainer: {
+    textAlign: 'center' as const,
+    marginTop: '20px',
+  },
+  stickerImage: {
+    maxWidth: '200px',
+    width: '200px',
+    height: 'auto',
   },
   wishesTitle: {
     color: colors.christmasRedDark,
@@ -360,8 +290,9 @@ const styles = {
     paddingLeft: '5px',
   },
   senderSection: {
-    padding: '0 30px 35px',
-    backgroundColor: colors.warmWhite,
+    padding: '35px 30px',
+    backgroundColor: colors.christmasGreen,
+    borderTop: `4px solid ${colors.black}`,
   },
   senderCard: {
     backgroundColor: colors.christmasRed,
@@ -369,6 +300,24 @@ const styles = {
     boxShadow: `8px 8px 0px ${colors.black}`,
     padding: '30px',
     textAlign: 'center' as const,
+    marginBottom: '25px',
+  },
+  closingMessage: {
+    backgroundColor: colors.christmasGreenDark,
+    border: `4px solid ${colors.black}`,
+    padding: '20px 25px',
+    textAlign: 'center' as const,
+  },
+  closingText: {
+    color: colors.white,
+    fontSize: '16px',
+    fontWeight: 600,
+    margin: '0 0 8px 0',
+  },
+  closingSubtext: {
+    color: colors.goldLight,
+    fontSize: '13px',
+    margin: 0,
   },
   senderLabel: {
     color: colors.goldLight,
@@ -401,10 +350,14 @@ const styles = {
   },
   footer: {
     backgroundColor: colors.christmasGreen,
-    backgroundImage: polkaDotPatterns.whiteOnGreen,
     borderTop: `4px solid ${colors.black}`,
     padding: '25px',
     textAlign: 'center' as const,
+  },
+  footerIcons: {
+    fontSize: '20px',
+    letterSpacing: '8px',
+    marginBottom: '15px',
   },
   footerTextBox: {
     backgroundColor: colors.christmasGreenDark,
@@ -434,18 +387,14 @@ const styles = {
     backgroundColor: colors.christmasRed,
     padding: '15px',
     textAlign: 'center' as const,
+    fontSize: '16px',
+    letterSpacing: '6px',
   },
   divider: {
     height: '8px',
     backgroundColor: colors.gold,
     border: 'none',
     margin: 0,
-  },
-  iconCell: {
-    padding: '0 8px',
-  },
-  iconCellLarge: {
-    padding: '0 15px',
   },
 };
 
@@ -471,68 +420,31 @@ export const ChristmasEmail: React.FC<ChristmasEmailProps> = ({
         <Container style={styles.container}>
           {/* Top Decorative Banner */}
           <Section style={styles.topBanner}>
-            <table cellPadding="0" cellSpacing="0" style={{ margin: '0 auto' }}>
-              <tbody>
-                <tr>
-                  <td style={styles.iconCell}><Icon type="snowflake" size={18} color={colors.white} /></td>
-                  <td style={styles.iconCell}><Icon type="star" size={18} color={colors.gold} /></td>
-                  <td style={styles.iconCell}><Icon type="snowflake" size={18} color={colors.white} /></td>
-                  <td style={styles.iconCell}><Icon type="bell" size={18} color={colors.gold} /></td>
-                  <td style={styles.iconCell}><Icon type="snowflake" size={18} color={colors.white} /></td>
-                  <td style={styles.iconCell}><Icon type="star" size={18} color={colors.gold} /></td>
-                  <td style={styles.iconCell}><Icon type="snowflake" size={18} color={colors.white} /></td>
-                </tr>
-              </tbody>
-            </table>
+            <Text style={styles.topBannerText}>
+              {icons.snowflake} {icons.star} {icons.snowflake} {icons.bell} {icons.snowflake} {icons.star} {icons.snowflake}
+            </Text>
           </Section>
 
           {/* Main Header */}
           <Section style={styles.header}>
-            <div style={styles.headerTextBox}>
-              <Text style={styles.headerSubtitle}>Season's Greetings</Text>
-              <Text style={styles.headerTitle}>Merry Christmas</Text>
-            </div>
-            <div style={styles.headerYearBox}>
-              <table cellPadding="0" cellSpacing="0" style={{ margin: '0 auto' }}>
-                <tbody>
-                  <tr>
-                    <td style={{ padding: '0 10px' }}><Icon type="star" size={20} color={colors.gold} /></td>
-                    <td><Text style={styles.headerYear}>{nextYear}</Text></td>
-                    <td style={{ padding: '0 10px' }}><Icon type="star" size={20} color={colors.gold} /></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <Text style={styles.headerSubtitle}>Season's Greetings</Text>
+            <Text style={styles.headerTitle}>Merry Christmas</Text>
+            <Text style={styles.headerYear}>
+              {icons.star} {nextYear} {icons.star}
+            </Text>
           </Section>
 
           {/* Icon Decoration Bar */}
           <Section style={styles.iconBar}>
-            <table cellPadding="0" cellSpacing="0" style={{ margin: '0 auto' }}>
-              <tbody>
-                <tr>
-                  <td style={styles.iconCellLarge}><Icon type="christmasTree" size={36} color={colors.christmasGreen} /></td>
-                  <td style={styles.iconCellLarge}><Icon type="gift" size={32} color={colors.christmasRed} /></td>
-                  <td style={styles.iconCellLarge}><Icon type="holly" size={32} color={colors.christmasGreen} /></td>
-                  <td style={styles.iconCellLarge}><Icon type="bell" size={32} color={colors.gold} /></td>
-                  <td style={styles.iconCellLarge}><Icon type="gift" size={32} color={colors.christmasRed} /></td>
-                  <td style={styles.iconCellLarge}><Icon type="christmasTree" size={36} color={colors.christmasGreen} /></td>
-                </tr>
-              </tbody>
-            </table>
+            {icons.christmasTree} {icons.gift} {icons.bell} {icons.ribbon} {icons.gift} {icons.christmasTree}
           </Section>
 
           {/* Personal Image Section */}
           {personalImageUrl && personalImageUrl !== 'YOUR_IMAGE_URL_HERE' && (
             <Section style={styles.imageSection}>
-              <table cellPadding="0" cellSpacing="0" style={{ margin: '0 auto 15px' }}>
-                <tbody>
-                  <tr>
-                    <td style={styles.iconCell}><Icon type="star" size={20} color={colors.gold} /></td>
-                    <td style={styles.iconCell}><Icon type="holly" size={22} color={colors.christmasGreen} /></td>
-                    <td style={styles.iconCell}><Icon type="star" size={20} color={colors.gold} /></td>
-                  </tr>
-                </tbody>
-              </table>
+              <Text style={styles.imageSectionIcons}>
+                {icons.star} {icons.christmasTree} {icons.star}
+              </Text>
               <div style={styles.imageContainer}>
                 <Img
                   src={personalImageUrl}
@@ -542,9 +454,7 @@ export const ChristmasEmail: React.FC<ChristmasEmailProps> = ({
               </div>
               <div>
                 <Text style={styles.imageCaption}>
-                  <Icon type="snowflake" size={14} color={colors.white} />
-                  <span style={{ margin: '0 10px' }}>Holiday Wishes</span>
-                  <Icon type="snowflake" size={14} color={colors.white} />
+                  {icons.snowflake} Holiday Wishes {icons.snowflake}
                 </Text>
               </div>
             </Section>
@@ -577,15 +487,9 @@ export const ChristmasEmail: React.FC<ChristmasEmailProps> = ({
               </Text>
 
               <div style={styles.highlightBox}>
-                <table cellPadding="0" cellSpacing="0" style={{ margin: '0 auto' }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ paddingRight: '10px' }}><Icon type="star" size={20} color={colors.christmasRed} /></td>
-                      <td><Text style={styles.highlightText}>Wishing You a Magical Holiday Season</Text></td>
-                      <td style={{ paddingLeft: '10px' }}><Icon type="star" size={20} color={colors.christmasRed} /></td>
-                    </tr>
-                  </tbody>
-                </table>
+                <Text style={styles.highlightText}>
+                  {icons.sparkle} Wishing You a Magical Holiday Season {icons.sparkle}
+                </Text>
               </div>
 
               <Text style={styles.messageTextLast}>
@@ -597,30 +501,25 @@ export const ChristmasEmail: React.FC<ChristmasEmailProps> = ({
 
             {/* Wishes List */}
             <div style={styles.wishesSection}>
-              <table cellPadding="0" cellSpacing="0">
-                <tbody>
-                  <tr>
-                    <td style={{ paddingRight: '10px', verticalAlign: 'middle' }}><Icon type="heart" size={18} color={colors.christmasRed} /></td>
-                    <td><Text style={styles.wishesTitle}>My Wishes for You</Text></td>
-                  </tr>
-                </tbody>
-              </table>
-              <Text style={styles.wishItem}>
-                <Icon type="star" size={14} color={colors.gold} /> Joy and happiness in every moment
+              <Text style={styles.wishesTitle}>
+                {icons.heart} My Wishes for You
               </Text>
               <Text style={styles.wishItem}>
-                <Icon type="star" size={14} color={colors.gold} /> Success in all your endeavors
+                {icons.star} Joy and happiness in every moment
               </Text>
               <Text style={styles.wishItem}>
-                <Icon type="star" size={14} color={colors.gold} /> Health and wellness for you and your family
+                {icons.star} Success in all your endeavors
               </Text>
               <Text style={styles.wishItem}>
-                <Icon type="star" size={14} color={colors.gold} /> Exciting new adventures in {nextYear}
+                {icons.star} Health and wellness for you and your family
+              </Text>
+              <Text style={styles.wishItem}>
+                {icons.star} Exciting new adventures in {nextYear}
               </Text>
 
-              {/* Decorative Sticker - positioned at bottom-right corner */}
+              {/* Sticker Image */}
               {stickerImageUrl && (
-                <div style={styles.stickerWrapper}>
+                <div style={styles.stickerContainer}>
                   <Img
                     src={stickerImageUrl}
                     alt="Christmas Sticker"
@@ -633,29 +532,17 @@ export const ChristmasEmail: React.FC<ChristmasEmailProps> = ({
 
           {/* Decorative Ribbon Divider */}
           <Section style={styles.ribbonDivider}>
-            <table cellPadding="0" cellSpacing="0" style={{ margin: '0 auto' }}>
-              <tbody>
-                <tr>
-                  <td style={{ padding: '0 8px' }}><Icon type="gift" size={16} color={colors.gold} /></td>
-                  <td><Text style={styles.ribbonText}>Spreading Holiday Cheer</Text></td>
-                  <td style={{ padding: '0 8px' }}><Icon type="gift" size={16} color={colors.gold} /></td>
-                </tr>
-              </tbody>
-            </table>
+            <Text style={styles.ribbonText}>
+              {icons.gift} Spreading Holiday Cheer {icons.gift}
+            </Text>
           </Section>
 
           {/* Festive Image Section */}
           {festiveImageUrl && (
             <Section style={styles.festiveImageSection}>
-              <table cellPadding="0" cellSpacing="0" style={{ margin: '0 auto 15px' }}>
-                <tbody>
-                  <tr>
-                    <td style={styles.iconCell}><Icon type="bell" size={20} color={colors.gold} /></td>
-                    <td style={styles.iconCell}><Icon type="christmasTree" size={24} color={colors.christmasGreen} /></td>
-                    <td style={styles.iconCell}><Icon type="bell" size={20} color={colors.gold} /></td>
-                  </tr>
-                </tbody>
-              </table>
+              <Text style={styles.imageSectionIcons}>
+                {icons.bell} {icons.christmasTree} {icons.bell}
+              </Text>
               <div style={styles.festiveImageContainer}>
                 <Img
                   src={festiveImageUrl}
@@ -665,9 +552,7 @@ export const ChristmasEmail: React.FC<ChristmasEmailProps> = ({
               </div>
               <div>
                 <Text style={styles.festiveImageCaption}>
-                  <Icon type="star" size={14} color={colors.gold} />
-                  <span style={{ margin: '0 10px' }}>Season's Joy</span>
-                  <Icon type="star" size={14} color={colors.gold} />
+                  {icons.sparkle} Season's Joy {icons.sparkle}
                 </Text>
               </div>
             </Section>
@@ -676,59 +561,29 @@ export const ChristmasEmail: React.FC<ChristmasEmailProps> = ({
           {/* Gold Divider before Sender */}
           <Hr style={styles.divider} />
 
-          {/* Sender Card */}
+          {/* Sender Card + Closing Message (combined to avoid Gmail folding) */}
           <Section style={styles.senderSection}>
             <div style={styles.senderCard}>
               <Text style={styles.senderLabel}>Warm Regards From</Text>
               <Text style={styles.senderName}>{config.sender.name}</Text>
               <Link href={config.linkedin} style={styles.linkedinButton}>
-                <Icon type="linkedin" size={18} color={colors.black} />
-                <span style={{ marginLeft: '8px' }}>Connect on LinkedIn</span>
+                Connect on LinkedIn
               </Link>
             </div>
-          </Section>
 
-          {/* Footer */}
-          <Section style={styles.footer}>
-            <table cellPadding="0" cellSpacing="0" style={{ margin: '0 auto 15px' }}>
-              <tbody>
-                <tr>
-                  <td style={styles.iconCell}><Icon type="snowflake" size={16} color={colors.white} /></td>
-                  <td style={styles.iconCell}><Icon type="christmasTree" size={20} color={colors.white} /></td>
-                  <td style={styles.iconCell}><Icon type="snowflake" size={16} color={colors.white} /></td>
-                </tr>
-              </tbody>
-            </table>
-            <div style={styles.footerTextBox}>
-              <Text style={styles.footerText}>
-                Merry Christmas & Happy New Year {nextYear}!
+            <div style={styles.closingMessage}>
+              <Text style={styles.closingText}>
+                {icons.christmasTree} Merry Christmas & Happy New Year {nextYear}! {icons.christmasTree}
               </Text>
-            </div>
-            <br />
-            <div style={styles.footerSubtextBox}>
-              <Text style={styles.footerSubtext}>
-                Sent with warmth and appreciation
+              <Text style={styles.closingSubtext}>
+                Sent with warmth and appreciation {icons.heart}
               </Text>
             </div>
           </Section>
 
           {/* Bottom Decorative Banner */}
           <Section style={styles.bottomBanner}>
-            <table cellPadding="0" cellSpacing="0" style={{ margin: '0 auto' }}>
-              <tbody>
-                <tr>
-                  <td style={{ padding: '0 6px' }}><Icon type="gift" size={16} color={colors.white} /></td>
-                  <td style={{ padding: '0 6px' }}><Icon type="star" size={14} color={colors.gold} /></td>
-                  <td style={{ padding: '0 6px' }}><Icon type="holly" size={16} color={colors.christmasGreenLight} /></td>
-                  <td style={{ padding: '0 6px' }}><Icon type="star" size={14} color={colors.gold} /></td>
-                  <td style={{ padding: '0 6px' }}><Icon type="bell" size={16} color={colors.gold} /></td>
-                  <td style={{ padding: '0 6px' }}><Icon type="star" size={14} color={colors.gold} /></td>
-                  <td style={{ padding: '0 6px' }}><Icon type="holly" size={16} color={colors.christmasGreenLight} /></td>
-                  <td style={{ padding: '0 6px' }}><Icon type="star" size={14} color={colors.gold} /></td>
-                  <td style={{ padding: '0 6px' }}><Icon type="gift" size={16} color={colors.white} /></td>
-                </tr>
-              </tbody>
-            </table>
+            {icons.gift} {icons.star} {icons.christmasTree} {icons.star} {icons.bell} {icons.star} {icons.christmasTree} {icons.star} {icons.gift}
           </Section>
         </Container>
       </Body>

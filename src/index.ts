@@ -22,6 +22,8 @@ async function sendEmail(
       React.createElement(ChristmasEmail, {
         recipientName,
         personalImageUrl: config.personalImageUrl,
+        festiveImageUrl: config.festiveImageUrl,
+        stickerImageUrl: config.stickerImageUrl,
       })
     );
 
