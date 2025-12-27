@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Gift, Megaphone, Newspaper, Edit, Copy, Trash2, Check } from 'lucide-react'
+import { Plus, Gift, Megaphone, Newspaper, Edit, Copy, Trash2, Check, Cloud } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
@@ -76,6 +76,10 @@ interface CustomTemplate {
   color: string
   isPreset: false
   createdAt: string
+  // Resend sync fields
+  resendTemplateId?: string
+  syncedAt?: string
+  isPublished?: boolean
 }
 
 const typeIcons = {
@@ -104,7 +108,14 @@ export default function TemplatesPage() {
         const parsed = JSON.parse(saved)
         // Extract just the metadata for display
         const templates = Object.entries(parsed).map(([id, data]: [string, unknown]) => {
-          const templateData = data as { name?: string; type?: string; createdAt?: string }
+          const templateData = data as {
+            name?: string
+            type?: string
+            createdAt?: string
+            resendTemplateId?: string
+            syncedAt?: string
+            isPublished?: boolean
+          }
           return {
             id,
             name: templateData.name || 'Untitled Template',
@@ -114,6 +125,10 @@ export default function TemplatesPage() {
             color: 'bg-gray-500',
             isPreset: false as const,
             createdAt: templateData.createdAt || new Date().toISOString(),
+            // Include sync fields
+            resendTemplateId: templateData.resendTemplateId,
+            syncedAt: templateData.syncedAt,
+            isPublished: templateData.isPublished,
           }
         })
         setCustomTemplates(templates)
@@ -270,13 +285,21 @@ export default function TemplatesPage() {
             Choose a template to customize or create your own
           </p>
         </div>
-        <Button
-          className="neo-button bg-neo-green text-white"
-          onClick={handleCreateTemplate}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create Template
-        </Button>
+        <div className="flex items-center gap-3">
+          <Link href="/templates/resend">
+            <Button variant="outline" className="neo-border">
+              <Cloud className="w-4 h-4 mr-2" />
+              Resend Cloud
+            </Button>
+          </Link>
+          <Button
+            className="neo-button bg-neo-green text-white"
+            onClick={handleCreateTemplate}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Template
+          </Button>
+        </div>
       </div>
 
       {/* Copy Success Message */}
@@ -377,6 +400,7 @@ function TemplateCard({
 }) {
   const TypeIcon = typeIcons[template.type as keyof typeof typeIcons]
   const isCustom = 'isPreset' in template && !template.isPreset
+  const isSynced = isCustom && 'resendTemplateId' in template && template.resendTemplateId
 
   return (
     <Card className="neo-border neo-shadow overflow-hidden group">
@@ -384,12 +408,25 @@ function TemplateCard({
       <div className={`${template.color} h-40 flex items-center justify-center relative`}>
         <span className="text-6xl">{template.thumbnail}</span>
 
-        {/* Custom badge */}
-        {isCustom && (
-          <div className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-1 font-bold uppercase">
-            Custom
-          </div>
-        )}
+        {/* Badges */}
+        <div className="absolute top-2 left-2 flex gap-1">
+          {/* Custom badge */}
+          {isCustom && (
+            <div className="bg-black text-white text-xs px-2 py-1 font-bold uppercase">
+              Custom
+            </div>
+          )}
+          {/* Synced badge */}
+          {isSynced && (
+            <div
+              className="bg-green-500 text-white text-xs px-2 py-1 font-bold uppercase flex items-center gap-1"
+              title={`Synced: ${(template as CustomTemplate).syncedAt ? new Date((template as CustomTemplate).syncedAt!).toLocaleString() : 'Unknown'}`}
+            >
+              <Cloud className="w-3 h-3" />
+              Synced
+            </div>
+          )}
+        </div>
 
         {/* Hover Actions */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">

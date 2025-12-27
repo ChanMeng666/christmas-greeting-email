@@ -223,7 +223,7 @@ export default function SendPage() {
   const [selectedContacts, setSelectedContacts] = useState<string[]>([])
   const [subject, setSubject] = useState('')
   const [contacts, setContacts] = useState<Contact[]>([])
-  const [templates, setTemplates] = useState<{ id: string; name: string; emoji: string }[]>([])
+  const [templates, setTemplates] = useState<{ id: string; name: string; emoji: string; resendTemplateId?: string; syncedAt?: string }[]>([])
 
   // Load contacts and templates from localStorage
   useEffect(() => {
@@ -238,7 +238,7 @@ export default function SendPage() {
     }
 
     // Load custom templates and combine with presets
-    const templateList = [
+    const templateList: { id: string; name: string; emoji: string; resendTemplateId?: string; syncedAt?: string }[] = [
       { id: 'christmas-classic', name: 'Classic Christmas', emoji: '🎄' },
       { id: 'new-year-2025', name: 'New Year 2025', emoji: '🎆' },
       { id: 'chinese-new-year', name: 'Chinese New Year', emoji: '🧧' },
@@ -252,12 +252,14 @@ export default function SendPage() {
       try {
         const customTemplates = JSON.parse(savedTemplates)
         Object.entries(customTemplates).forEach(([id, data]) => {
-          const template = data as { name?: string }
+          const template = data as { name?: string; resendTemplateId?: string; syncedAt?: string }
           if (!templateList.find(t => t.id === id)) {
             templateList.push({
               id,
               name: template.name || 'Custom Template',
               emoji: '✨',
+              resendTemplateId: template.resendTemplateId,
+              syncedAt: template.syncedAt,
             })
           }
         })
@@ -410,7 +412,7 @@ function StepTemplate({
 }: {
   selected: string | null
   onSelect: (id: string) => void
-  templates: { id: string; name: string; emoji: string }[]
+  templates: { id: string; name: string; emoji: string; resendTemplateId?: string; syncedAt?: string }[]
 }) {
   return (
     <div>
@@ -420,12 +422,21 @@ function StepTemplate({
           <button
             key={template.id}
             onClick={() => onSelect(template.id)}
-            className={`p-6 neo-border text-center transition-all ${
+            className={`p-6 neo-border text-center transition-all relative ${
               selected === template.id
                 ? 'bg-neo-cream neo-shadow-green'
                 : 'bg-white hover:bg-gray-50'
             }`}
           >
+            {/* Sync badge */}
+            {template.resendTemplateId && (
+              <div
+                className="absolute top-2 right-2 bg-green-500 text-white text-xs px-1.5 py-0.5 flex items-center gap-1 rounded-sm"
+                title={`Synced: ${template.syncedAt ? new Date(template.syncedAt).toLocaleString() : 'Unknown'}`}
+              >
+                <Cloud className="w-3 h-3" />
+              </div>
+            )}
             <span className="text-4xl block mb-2">{template.emoji}</span>
             <span className="font-bold">{template.name}</span>
           </button>
