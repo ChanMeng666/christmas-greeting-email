@@ -22,7 +22,10 @@ import {
   FileSignature,
   Check,
   X,
-  Loader2
+  Loader2,
+  Cloud,
+  CloudOff,
+  Upload
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -242,6 +245,12 @@ export default function TemplateEditorPage() {
   const [previewLoading, setPreviewLoading] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
+  // Resend sync state
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle')
+  const [resendTemplateId, setResendTemplateId] = useState<string | null>(null)
+  const [syncedAt, setSyncedAt] = useState<string | null>(null)
+  const [isPublished, setIsPublished] = useState(false)
+
   // Undo/Redo history
   const [history, setHistory] = useState<Block[][]>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
@@ -275,6 +284,11 @@ export default function TemplateEditorPage() {
           setTheme({ ...defaultTheme, ...template.theme })
           setHistory([template.blocks || []])
           setHistoryIndex(0)
+          // Load Resend sync fields
+          if (template.resendTemplateId) setResendTemplateId(template.resendTemplateId)
+          if (template.syncedAt) setSyncedAt(template.syncedAt)
+          if (template.isPublished) setIsPublished(template.isPublished)
+          if (template.resendTemplateId && template.syncedAt) setSyncStatus('synced')
         }
       } catch (e) {
         console.error('Failed to load template:', e)
@@ -366,6 +380,10 @@ export default function TemplateEditorPage() {
         theme,
         updatedAt: new Date().toISOString(),
         createdAt: templates[templateId]?.createdAt || new Date().toISOString(),
+        // Resend sync fields
+        resendTemplateId,
+        syncedAt,
+        isPublished,
       }
 
       localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates))
@@ -407,6 +425,118 @@ export default function TemplateEditorPage() {
       setPreviewHtml('<p style="color:red;padding:20px;">Failed to render preview</p>')
     } finally {
       setPreviewLoading(false)
+    }
+  }
+
+  const handleSyncToResend = async (publish: boolean = true) => {
+    // Get API key from settings
+    const settingsStr = localStorage.getItem('email-platform-settings')
+    if (!settingsStr) {
+      alert('Please configure your Resend API key in Settings first.')
+      return
+    }
+
+    const settings = JSON.parse(settingsStr)
+    if (!settings.apiKey) {
+      alert('Please configure your Resend API key in Settings first.')
+      return
+    }
+
+    setSyncStatus('syncing')
+
+    try {
+      // First, render the template to HTML
+      const previewResponse = await fetch('/api/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blocks,
+          theme,
+          variables: {
+            recipientName: '{{{RECIPIENT_NAME}}}',
+            senderName: '{{{SENDER_NAME}}}',
+          },
+        }),
+      })
+
+      const previewData = await previewResponse.json()
+      if (!previewData.success) {
+        throw new Error('Failed to render template')
+      }
+
+      // Extract variables from template (convert {{var}} to Resend format)
+      const resendVariables = [
+        { key: 'RECIPIENT_NAME', type: 'string' as const, fallbackValue: 'Friend' },
+        { key: 'SENDER_NAME', type: 'string' as const, fallbackValue: 'Your Name' },
+      ]
+
+      let result
+      if (resendTemplateId) {
+        // Update existing template
+        const updateResponse = await fetch(`/api/resend-templates/${resendTemplateId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            apiKey: settings.apiKey,
+            name: templateName,
+            html: previewData.html,
+          }),
+        })
+        result = await updateResponse.json()
+
+        // Publish if requested
+        if (publish && result.success) {
+          await fetch(`/api/resend-templates/${resendTemplateId}/publish`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apiKey: settings.apiKey }),
+          })
+        }
+      } else {
+        // Create new template
+        const createResponse = await fetch('/api/resend-templates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            apiKey: settings.apiKey,
+            name: templateName,
+            html: previewData.html,
+            variables: resendVariables,
+            publish,
+          }),
+        })
+        result = await createResponse.json()
+      }
+
+      if (result.success) {
+        const newTemplateId = result.template?.id || resendTemplateId
+        const now = new Date().toISOString()
+
+        setResendTemplateId(newTemplateId)
+        setSyncedAt(now)
+        setIsPublished(publish)
+        setSyncStatus('synced')
+
+        // Save to localStorage
+        const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY) || '{}'
+        const templates = JSON.parse(saved)
+        templates[templateId] = {
+          ...templates[templateId],
+          resendTemplateId: newTemplateId,
+          syncedAt: now,
+          isPublished: publish,
+        }
+        localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates))
+
+        setTimeout(() => setSyncStatus('idle'), 2000)
+      } else {
+        throw new Error(result.error || 'Sync failed')
+      }
+    } catch (e) {
+      console.error('Sync error:', e)
+      setSyncStatus('error')
+      alert(`Failed to sync: ${e instanceof Error ? e.message : 'Unknown error'}`)
+      setTimeout(() => setSyncStatus('idle'), 3000)
     }
   }
 
@@ -472,7 +602,7 @@ export default function TemplateEditorPage() {
 
           <div className="w-px h-6 bg-gray-300 mx-2" />
 
-          {/* Preview & Save */}
+          {/* Preview & Save & Sync */}
           <Button
             variant="outline"
             className="neo-border"
@@ -494,6 +624,30 @@ export default function TemplateEditorPage() {
               <Save className="w-4 h-4 mr-2" />
             )}
             {saveStatus === 'saved' ? 'Saved!' : saveStatus === 'saving' ? 'Saving...' : 'Save'}
+          </Button>
+
+          <div className="w-px h-6 bg-gray-300 mx-2" />
+
+          {/* Sync to Resend */}
+          <Button
+            variant="outline"
+            className={`neo-border ${syncStatus === 'synced' ? 'border-green-500' : ''}`}
+            onClick={() => handleSyncToResend(true)}
+            disabled={syncStatus === 'syncing'}
+            title={syncedAt ? `Last synced: ${new Date(syncedAt).toLocaleString()}` : 'Sync to Resend cloud'}
+          >
+            {syncStatus === 'syncing' ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : syncStatus === 'synced' ? (
+              <Cloud className="w-4 h-4 mr-2 text-green-500" />
+            ) : resendTemplateId ? (
+              <Upload className="w-4 h-4 mr-2" />
+            ) : (
+              <CloudOff className="w-4 h-4 mr-2" />
+            )}
+            {syncStatus === 'syncing' ? 'Syncing...' :
+             syncStatus === 'synced' ? 'Synced!' :
+             resendTemplateId ? 'Update' : 'Sync to Resend'}
           </Button>
         </div>
       </div>

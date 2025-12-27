@@ -15,7 +15,8 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
-  User
+  User,
+  Cloud
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -58,6 +59,10 @@ interface TemplateData {
   subject: string
   blocks: Block[]
   theme: Theme
+  // Resend sync fields
+  resendTemplateId?: string
+  syncedAt?: string
+  isPublished?: boolean
 }
 
 // Preset template data (same as in editor)
@@ -721,6 +726,7 @@ function StepSend({
   const [progress, setProgress] = useState(0)
   const [settings, setSettings] = useState<{ apiKey?: string; senderEmail?: string; senderName?: string }>({})
   const [error, setError] = useState<string | null>(null)
+  const [templateData, setTemplateData] = useState<TemplateData | null>(null)
 
   useEffect(() => {
     const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY)
@@ -731,7 +737,26 @@ function StepSend({
         console.error('Failed to load settings:', e)
       }
     }
-  }, [])
+
+    // Load template data to check for Resend sync status
+    if (templateId) {
+      if (presetTemplateData[templateId]) {
+        setTemplateData(presetTemplateData[templateId])
+      } else {
+        const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY)
+        if (saved) {
+          try {
+            const templates = JSON.parse(saved)
+            if (templates[templateId]) {
+              setTemplateData(templates[templateId])
+            }
+          } catch (e) {
+            console.error('Failed to load template:', e)
+          }
+        }
+      }
+    }
+  }, [templateId])
 
   const handleSend = async () => {
     if (!settings.apiKey) {
@@ -868,6 +893,16 @@ function StepSend({
             <strong>From:</strong> {settings.senderEmail || 'Not configured'}<br />
             <strong>Subject:</strong> {subject}<br />
             <strong>Recipients:</strong> {contacts.length}
+            {templateData?.resendTemplateId && (
+              <>
+                <br />
+                <span className="inline-flex items-center gap-1 text-green-600">
+                  <Cloud className="w-3 h-3" />
+                  <strong>Synced to Resend</strong>
+                  {templateData.isPublished && ' (Published)'}
+                </span>
+              </>
+            )}
           </p>
         </div>
 

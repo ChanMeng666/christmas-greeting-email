@@ -83,10 +83,21 @@ async function renderBlocksToHtml(
   theme: Theme,
   variables: Record<string, string>
 ): Promise<string> {
+  // Process variables supporting both syntaxes:
+  // - {{variableName}} - local preview syntax (camelCase)
+  // - {{{VARIABLE_NAME}}} - Resend template syntax (UPPER_SNAKE_CASE)
   const processVariables = (text: string): string => {
-    return text.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
+    // First handle Resend triple-brace syntax {{{VAR}}}
+    let result = text.replace(/\{\{\{(\w+)\}\}\}/g, (match, varName) => {
+      // Convert UPPER_SNAKE_CASE to camelCase for lookup
+      const camelCase = varName.toLowerCase().replace(/_([a-z])/g, (_: string, letter: string) => letter.toUpperCase())
+      return variables[camelCase] || variables[varName] || match
+    })
+    // Then handle local double-brace syntax {{var}}
+    result = result.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
       return variables[varName] || match
     })
+    return result
   }
 
   const emailElement = React.createElement(

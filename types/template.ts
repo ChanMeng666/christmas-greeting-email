@@ -102,6 +102,11 @@ export interface EmailTemplate {
   createdAt: string
   updatedAt: string
   isPreset: boolean
+  // Resend Template sync fields
+  resendTemplateId?: string          // ID from Resend when synced
+  resendVariables?: ResendTemplateVariable[]  // Variable definitions for Resend
+  syncedAt?: string                  // Last sync timestamp
+  isPublished?: boolean              // Whether published on Resend
 }
 
 export interface TemplateVariable {
@@ -109,6 +114,13 @@ export interface TemplateVariable {
   label: string
   defaultValue: string
   type: 'text' | 'image' | 'link'
+}
+
+// Resend Template API variable schema
+export interface ResendTemplateVariable {
+  key: string                      // e.g., 'RECIPIENT_NAME'
+  type: 'string' | 'number'        // Variable type
+  fallbackValue: string | number   // Default value if not provided
 }
 
 // 预设主题
