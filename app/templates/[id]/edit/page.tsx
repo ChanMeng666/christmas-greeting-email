@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   Save,
@@ -19,12 +19,17 @@ import {
   MousePointer2,
   List,
   Minus,
-  ChevronDown
+  FileSignature,
+  Check,
+  X,
+  Loader2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
+
+const TEMPLATES_STORAGE_KEY = 'email-platform-templates'
 
 const blockTypes = [
   { type: 'header', icon: Type, label: 'Header' },
@@ -33,52 +38,376 @@ const blockTypes = [
   { type: 'button', icon: MousePointer2, label: 'Button' },
   { type: 'wishes', icon: List, label: 'Wishes List' },
   { type: 'divider', icon: Minus, label: 'Divider' },
+  { type: 'footer', icon: FileSignature, label: 'Footer' },
 ]
 
 interface Block {
   id: string
   type: string
   props: Record<string, unknown>
+  visible?: boolean
+}
+
+interface Theme {
+  primaryColor: string
+  secondaryColor: string
+  accentColor: string
+  backgroundColor: string
+  surfaceColor: string
+  textColor: string
+  borderColor: string
+  borderWidth: number
+  shadowOffset: number
+}
+
+interface TemplateData {
+  id: string
+  name: string
+  type: string
+  subject: string
+  blocks: Block[]
+  theme: Theme
+  createdAt?: string
+}
+
+// Preset template configurations
+const presetTemplateData: Record<string, TemplateData> = {
+  'christmas-classic': {
+    id: 'christmas-classic',
+    name: 'Classic Christmas',
+    type: 'holiday',
+    subject: 'Merry Christmas & Happy New Year!',
+    blocks: [
+      { id: 'header-1', type: 'header', props: { title: 'Merry Christmas', subtitle: "Season's Greetings" }, visible: true },
+      { id: 'image-1', type: 'image', props: { src: 'https://images.unsplash.com/photo-1512389142860-9c449e58a814?w=600', alt: 'Christmas Scene' }, visible: true },
+      { id: 'text-1', type: 'text', props: { content: 'Dear {{recipientName}},\n\nAs the holiday season approaches, we want to take a moment to express our heartfelt gratitude for your continued support throughout the year.' }, visible: true },
+      { id: 'wishes-1', type: 'wishes', props: { title: 'Our Wishes for You', items: [{ icon: '🎄', text: 'Joy and happiness' }, { icon: '🌟', text: 'Peace and prosperity' }, { icon: '❄️', text: 'Magical moments with loved ones' }] }, visible: true },
+      { id: 'footer-1', type: 'footer', props: { senderLabel: 'Warm Regards', senderName: '{{senderName}}' }, visible: true },
+    ],
+    theme: {
+      primaryColor: '#DC2626',
+      secondaryColor: '#16A34A',
+      accentColor: '#F59E0B',
+      backgroundColor: '#1a1a2e',
+      surfaceColor: '#FFFBEB',
+      textColor: '#000000',
+      borderColor: '#000000',
+      borderWidth: 4,
+      shadowOffset: 8,
+    },
+  },
+  'new-year-2025': {
+    id: 'new-year-2025',
+    name: 'New Year 2025',
+    type: 'holiday',
+    subject: 'Happy New Year 2025!',
+    blocks: [
+      { id: 'header-1', type: 'header', props: { title: 'Happy 2025', subtitle: 'New Year Wishes' }, visible: true },
+      { id: 'text-1', type: 'text', props: { content: 'Dear {{recipientName}},\n\nAs we welcome the new year, we wish you endless opportunities, good health, and abundant happiness in 2025!' }, visible: true },
+      { id: 'wishes-1', type: 'wishes', props: { title: 'New Year Blessings', items: [{ icon: '🎆', text: 'New adventures await' }, { icon: '✨', text: 'Dreams come true' }, { icon: '🥂', text: 'Cheers to success' }] }, visible: true },
+      { id: 'footer-1', type: 'footer', props: { senderLabel: 'Best Wishes', senderName: '{{senderName}}' }, visible: true },
+    ],
+    theme: {
+      primaryColor: '#7C3AED',
+      secondaryColor: '#F59E0B',
+      accentColor: '#EC4899',
+      backgroundColor: '#1a1a2e',
+      surfaceColor: '#FFFBEB',
+      textColor: '#000000',
+      borderColor: '#000000',
+      borderWidth: 4,
+      shadowOffset: 8,
+    },
+  },
+  'chinese-new-year': {
+    id: 'chinese-new-year',
+    name: 'Chinese New Year',
+    type: 'holiday',
+    subject: 'Happy Chinese New Year!',
+    blocks: [
+      { id: 'header-1', type: 'header', props: { title: 'Happy Lunar New Year', subtitle: 'Year of the Snake' }, visible: true },
+      { id: 'text-1', type: 'text', props: { content: 'Dear {{recipientName}},\n\nWishing you prosperity, good fortune, and happiness in the Year of the Snake!' }, visible: true },
+      { id: 'wishes-1', type: 'wishes', props: { title: 'New Year Blessings', items: [{ icon: '🧧', text: 'Prosperity and wealth' }, { icon: '🐍', text: 'Good health' }, { icon: '🏮', text: 'Family harmony' }] }, visible: true },
+      { id: 'footer-1', type: 'footer', props: { senderLabel: 'Gong Xi Fa Cai', senderName: '{{senderName}}' }, visible: true },
+    ],
+    theme: {
+      primaryColor: '#DC2626',
+      secondaryColor: '#F59E0B',
+      accentColor: '#EAB308',
+      backgroundColor: '#1a1a2e',
+      surfaceColor: '#FEF3C7',
+      textColor: '#000000',
+      borderColor: '#000000',
+      borderWidth: 4,
+      shadowOffset: 8,
+    },
+  },
+  'birthday': {
+    id: 'birthday',
+    name: 'Birthday Wishes',
+    type: 'holiday',
+    subject: 'Happy Birthday!',
+    blocks: [
+      { id: 'header-1', type: 'header', props: { title: 'Happy Birthday!', subtitle: 'Celebrate Your Day' }, visible: true },
+      { id: 'text-1', type: 'text', props: { content: 'Dear {{recipientName}},\n\nWishing you a fantastic birthday filled with love, laughter, and all your favorite things!' }, visible: true },
+      { id: 'wishes-1', type: 'wishes', props: { title: 'Birthday Wishes', items: [{ icon: '🎂', text: 'Endless joy' }, { icon: '🎈', text: 'Beautiful memories' }, { icon: '🎁', text: 'All your wishes come true' }] }, visible: true },
+      { id: 'footer-1', type: 'footer', props: { senderLabel: 'With Love', senderName: '{{senderName}}' }, visible: true },
+    ],
+    theme: {
+      primaryColor: '#EC4899',
+      secondaryColor: '#8B5CF6',
+      accentColor: '#F59E0B',
+      backgroundColor: '#1a1a2e',
+      surfaceColor: '#FDF4FF',
+      textColor: '#000000',
+      borderColor: '#000000',
+      borderWidth: 4,
+      shadowOffset: 8,
+    },
+  },
+  'product-launch': {
+    id: 'product-launch',
+    name: 'Product Launch',
+    type: 'marketing',
+    subject: 'Introducing Our Latest Innovation!',
+    blocks: [
+      { id: 'header-1', type: 'header', props: { title: 'New Product Launch', subtitle: 'Be the First to Know' }, visible: true },
+      { id: 'text-1', type: 'text', props: { content: 'Dear {{recipientName}},\n\nWe are excited to announce our latest product! Be among the first to experience innovation at its finest.' }, visible: true },
+      { id: 'button-1', type: 'button', props: { text: 'Learn More', url: 'https://example.com' }, visible: true },
+      { id: 'footer-1', type: 'footer', props: { senderLabel: 'From', senderName: '{{senderName}}' }, visible: true },
+    ],
+    theme: {
+      primaryColor: '#F59E0B',
+      secondaryColor: '#3B82F6',
+      accentColor: '#10B981',
+      backgroundColor: '#1a1a2e',
+      surfaceColor: '#FFFBEB',
+      textColor: '#000000',
+      borderColor: '#000000',
+      borderWidth: 4,
+      shadowOffset: 8,
+    },
+  },
+  'newsletter': {
+    id: 'newsletter',
+    name: 'Weekly Newsletter',
+    type: 'newsletter',
+    subject: 'Your Weekly Update',
+    blocks: [
+      { id: 'header-1', type: 'header', props: { title: 'Weekly Newsletter', subtitle: 'Your Weekly Digest' }, visible: true },
+      { id: 'text-1', type: 'text', props: { content: 'Dear {{recipientName}},\n\nHere are this week\'s highlights and updates you don\'t want to miss!' }, visible: true },
+      { id: 'divider-1', type: 'divider', props: {}, visible: true },
+      { id: 'text-2', type: 'text', props: { content: 'Stay tuned for more exciting updates coming soon.' }, visible: true },
+      { id: 'footer-1', type: 'footer', props: { senderLabel: 'Best', senderName: '{{senderName}}' }, visible: true },
+    ],
+    theme: {
+      primaryColor: '#16A34A',
+      secondaryColor: '#3B82F6',
+      accentColor: '#F59E0B',
+      backgroundColor: '#1a1a2e',
+      surfaceColor: '#F0FDF4',
+      textColor: '#000000',
+      borderColor: '#000000',
+      borderWidth: 4,
+      shadowOffset: 8,
+    },
+  },
+}
+
+const defaultTheme: Theme = {
+  primaryColor: '#DC2626',
+  secondaryColor: '#16A34A',
+  accentColor: '#F59E0B',
+  backgroundColor: '#1a1a2e',
+  surfaceColor: '#FFFBEB',
+  textColor: '#000000',
+  borderColor: '#000000',
+  borderWidth: 4,
+  shadowOffset: 8,
 }
 
 export default function TemplateEditorPage() {
   const params = useParams()
+  const router = useRouter()
   const templateId = params.id as string
 
-  const [blocks, setBlocks] = useState<Block[]>([
-    { id: '1', type: 'header', props: { title: 'Merry Christmas', subtitle: "Season's Greetings" } },
-    { id: '2', type: 'image', props: { src: '', alt: 'Hero Image' } },
-    { id: '3', type: 'text', props: { content: 'Dear {{recipientName}},' } },
-    { id: '4', type: 'wishes', props: { title: 'My Wishes', items: [] } },
-    { id: '5', type: 'footer', props: { senderName: 'Your Name' } },
-  ])
-
+  const [templateName, setTemplateName] = useState('New Template')
+  const [templateSubject, setTemplateSubject] = useState('Email Subject')
+  const [blocks, setBlocks] = useState<Block[]>([])
+  const [theme, setTheme] = useState<Theme>(defaultTheme)
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const [deviceMode, setDeviceMode] = useState<'desktop' | 'mobile'>('desktop')
+  const [showPreview, setShowPreview] = useState(false)
+  const [previewHtml, setPreviewHtml] = useState('')
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+
+  // Undo/Redo history
+  const [history, setHistory] = useState<Block[][]>([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
 
   const selectedBlock = blocks.find(b => b.id === selectedBlockId)
 
-  const handleAddBlock = (type: string) => {
-    const newBlock: Block = {
-      id: Date.now().toString(),
-      type,
-      props: {},
+  // Load template data
+  useEffect(() => {
+    // Check if it's a preset template
+    if (presetTemplateData[templateId]) {
+      const preset = presetTemplateData[templateId]
+      setTemplateName(preset.name)
+      setTemplateSubject(preset.subject)
+      setBlocks(preset.blocks)
+      setTheme(preset.theme)
+      setHistory([preset.blocks])
+      setHistoryIndex(0)
+      return
     }
-    setBlocks([...blocks, newBlock])
+
+    // Load from localStorage for custom templates
+    const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY)
+    if (saved) {
+      try {
+        const templates = JSON.parse(saved)
+        if (templates[templateId]) {
+          const template = templates[templateId]
+          setTemplateName(template.name || 'Untitled')
+          setTemplateSubject(template.subject || 'Email Subject')
+          setBlocks(template.blocks || [])
+          setTheme({ ...defaultTheme, ...template.theme })
+          setHistory([template.blocks || []])
+          setHistoryIndex(0)
+        }
+      } catch (e) {
+        console.error('Failed to load template:', e)
+      }
+    }
+  }, [templateId])
+
+  // Add to history
+  const addToHistory = useCallback((newBlocks: Block[]) => {
+    setHistory(prev => {
+      const newHistory = prev.slice(0, historyIndex + 1)
+      newHistory.push(newBlocks)
+      return newHistory.slice(-50) // Keep last 50 states
+    })
+    setHistoryIndex(prev => Math.min(prev + 1, 49))
+  }, [historyIndex])
+
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      setHistoryIndex(prev => prev - 1)
+      setBlocks(history[historyIndex - 1])
+    }
+  }
+
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      setHistoryIndex(prev => prev + 1)
+      setBlocks(history[historyIndex + 1])
+    }
+  }
+
+  const handleAddBlock = (type: string) => {
+    const defaultProps: Record<string, Record<string, unknown>> = {
+      header: { title: 'Your Title', subtitle: 'Subtitle' },
+      text: { content: 'Enter your text here...' },
+      image: { src: '', alt: 'Image' },
+      button: { text: 'Click Here', url: '#' },
+      wishes: { title: 'My Wishes', items: [{ icon: '⭐', text: 'Wish item' }] },
+      divider: {},
+      footer: { senderLabel: 'Best Regards', senderName: '{{senderName}}' },
+    }
+
+    const newBlock: Block = {
+      id: `${type}-${Date.now()}`,
+      type,
+      props: defaultProps[type] || {},
+      visible: true,
+    }
+    const newBlocks = [...blocks, newBlock]
+    setBlocks(newBlocks)
+    addToHistory(newBlocks)
     setSelectedBlockId(newBlock.id)
   }
 
   const handleDeleteBlock = (id: string) => {
-    setBlocks(blocks.filter(b => b.id !== id))
+    const newBlocks = blocks.filter(b => b.id !== id)
+    setBlocks(newBlocks)
+    addToHistory(newBlocks)
     if (selectedBlockId === id) {
       setSelectedBlockId(null)
     }
   }
 
   const handleUpdateBlock = (id: string, props: Record<string, unknown>) => {
-    setBlocks(blocks.map(b =>
+    const newBlocks = blocks.map(b =>
       b.id === id ? { ...b, props: { ...b.props, ...props } } : b
-    ))
+    )
+    setBlocks(newBlocks)
+    addToHistory(newBlocks)
+  }
+
+  const handleUpdateTheme = (updates: Partial<Theme>) => {
+    setTheme(prev => ({ ...prev, ...updates }))
+  }
+
+  const handleSave = async () => {
+    setSaveStatus('saving')
+
+    try {
+      const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY) || '{}'
+      const templates = JSON.parse(saved)
+
+      templates[templateId] = {
+        id: templateId,
+        name: templateName,
+        type: 'holiday',
+        subject: templateSubject,
+        blocks,
+        theme,
+        updatedAt: new Date().toISOString(),
+        createdAt: templates[templateId]?.createdAt || new Date().toISOString(),
+      }
+
+      localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates))
+      setSaveStatus('saved')
+      setTimeout(() => setSaveStatus('idle'), 2000)
+    } catch (e) {
+      console.error('Failed to save template:', e)
+      setSaveStatus('error')
+      setTimeout(() => setSaveStatus('idle'), 3000)
+    }
+  }
+
+  const handlePreview = async () => {
+    setPreviewLoading(true)
+    setShowPreview(true)
+
+    try {
+      const response = await fetch('/api/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blocks,
+          theme,
+          variables: {
+            recipientName: 'John',
+            senderName: 'Your Name',
+          },
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setPreviewHtml(data.html)
+      } else {
+        setPreviewHtml('<p style="color:red;padding:20px;">Failed to render preview</p>')
+      }
+    } catch (e) {
+      console.error('Preview error:', e)
+      setPreviewHtml('<p style="color:red;padding:20px;">Failed to render preview</p>')
+    } finally {
+      setPreviewLoading(false)
+    }
   }
 
   return (
@@ -90,17 +419,36 @@ export default function TemplateEditorPage() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="font-bold text-lg">Edit Template</h1>
-            <span className="text-sm text-gray-500">{templateId}</span>
+            <Input
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              className="font-bold text-lg border-0 p-0 h-auto focus-visible:ring-0"
+            />
+            <Input
+              value={templateSubject}
+              onChange={(e) => setTemplateSubject(e.target.value)}
+              className="text-sm text-gray-500 border-0 p-0 h-auto focus-visible:ring-0"
+              placeholder="Email subject..."
+            />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Undo/Redo */}
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleUndo}
+            disabled={historyIndex <= 0}
+          >
             <Undo className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleRedo}
+            disabled={historyIndex >= history.length - 1}
+          >
             <Redo className="w-4 h-4" />
           </Button>
 
@@ -125,13 +473,27 @@ export default function TemplateEditorPage() {
           <div className="w-px h-6 bg-gray-300 mx-2" />
 
           {/* Preview & Save */}
-          <Button variant="outline" className="neo-border">
+          <Button
+            variant="outline"
+            className="neo-border"
+            onClick={handlePreview}
+          >
             <Eye className="w-4 h-4 mr-2" />
             Preview
           </Button>
-          <Button className="neo-button bg-neo-green text-white">
-            <Save className="w-4 h-4 mr-2" />
-            Save
+          <Button
+            className="neo-button bg-neo-green text-white"
+            onClick={handleSave}
+            disabled={saveStatus === 'saving'}
+          >
+            {saveStatus === 'saving' ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : saveStatus === 'saved' ? (
+              <Check className="w-4 h-4 mr-2" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
+            {saveStatus === 'saved' ? 'Saved!' : saveStatus === 'saving' ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </div>
@@ -164,7 +526,7 @@ export default function TemplateEditorPage() {
               Blocks in Template
             </h3>
             <div className="space-y-2">
-              {blocks.map((block, index) => (
+              {blocks.map((block) => (
                 <div
                   key={block.id}
                   onClick={() => setSelectedBlockId(block.id)}
@@ -175,7 +537,7 @@ export default function TemplateEditorPage() {
                   }`}
                 >
                   <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
-                  <span className="text-sm flex-1">{block.type}</span>
+                  <span className="text-sm flex-1 capitalize">{block.type}</span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
@@ -187,6 +549,11 @@ export default function TemplateEditorPage() {
                   </button>
                 </div>
               ))}
+              {blocks.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-4">
+                  No blocks yet. Add some!
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -200,19 +567,28 @@ export default function TemplateEditorPage() {
           >
             {/* Email Preview */}
             <div className="min-h-[600px]">
-              {blocks.map((block) => (
-                <div
-                  key={block.id}
-                  onClick={() => setSelectedBlockId(block.id)}
-                  className={`relative p-4 cursor-pointer transition-all ${
-                    selectedBlockId === block.id
-                      ? 'ring-2 ring-neo-red ring-offset-2'
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <BlockPreview block={block} />
+              {blocks.length === 0 ? (
+                <div className="flex items-center justify-center h-[600px] text-gray-400">
+                  <div className="text-center">
+                    <Plus className="w-12 h-12 mx-auto mb-4" />
+                    <p>Add blocks to start building your template</p>
+                  </div>
                 </div>
-              ))}
+              ) : (
+                blocks.map((block) => (
+                  <div
+                    key={block.id}
+                    onClick={() => setSelectedBlockId(block.id)}
+                    className={`relative cursor-pointer transition-all ${
+                      selectedBlockId === block.id
+                        ? 'ring-2 ring-neo-red ring-offset-2'
+                        : 'hover:ring-1 hover:ring-gray-300'
+                    }`}
+                  >
+                    <BlockPreview block={block} theme={theme} />
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -222,9 +598,18 @@ export default function TemplateEditorPage() {
           <div className="p-4">
             {selectedBlock ? (
               <>
-                <h3 className="font-bold text-sm uppercase tracking-wide mb-4">
-                  Edit {selectedBlock.type}
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-sm uppercase tracking-wide">
+                    Edit {selectedBlock.type}
+                  </h3>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setSelectedBlockId(null)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
                 <BlockEditor
                   block={selectedBlock}
                   onUpdate={(props) => handleUpdateBlock(selectedBlock.id, props)}
@@ -235,22 +620,52 @@ export default function TemplateEditorPage() {
                 <h3 className="font-bold text-sm uppercase tracking-wide mb-4">
                   Theme Settings
                 </h3>
-                <ThemeEditor />
+                <ThemeEditor theme={theme} onUpdate={handleUpdateTheme} />
               </>
             )}
           </div>
         </div>
       </div>
+
+      {/* Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-8">
+          <div className="bg-white neo-border neo-shadow max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b-4 border-black">
+              <h3 className="font-bold text-lg">Email Preview</h3>
+              <Button size="sm" variant="ghost" onClick={() => setShowPreview(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-auto bg-gray-100 p-4">
+              {previewLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <iframe
+                  srcDoc={previewHtml}
+                  className="w-full h-full min-h-[600px] bg-white"
+                  title="Email Preview"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-function BlockPreview({ block }: { block: Block }) {
+function BlockPreview({ block, theme }: { block: Block; theme: Theme }) {
   switch (block.type) {
     case 'header':
       return (
-        <div className="bg-neo-red text-white p-8 text-center">
-          <p className="text-sm uppercase tracking-wider mb-2">
+        <div
+          className="text-white p-8 text-center"
+          style={{ backgroundColor: theme.primaryColor }}
+        >
+          <p className="text-sm uppercase tracking-wider mb-2 opacity-80">
             {(block.props.subtitle as string) || "Season's Greetings"}
           </p>
           <h1 className="text-3xl font-black uppercase">
@@ -260,51 +675,99 @@ function BlockPreview({ block }: { block: Block }) {
       )
     case 'text':
       return (
-        <div className="p-4">
-          <p>{(block.props.content as string) || 'Enter your text here...'}</p>
+        <div className="p-6">
+          <p className="whitespace-pre-wrap" style={{ color: theme.textColor }}>
+            {(block.props.content as string) || 'Enter your text here...'}
+          </p>
         </div>
       )
     case 'image':
+      const src = block.props.src as string
       return (
-        <div className="p-4">
-          <div className="bg-gray-200 h-40 flex items-center justify-center neo-border">
-            <Image className="w-8 h-8 text-gray-400" />
-          </div>
+        <div className="p-6">
+          {src ? (
+            <img
+              src={src}
+              alt={(block.props.alt as string) || 'Image'}
+              className="w-full neo-border"
+              style={{ boxShadow: `${theme.shadowOffset}px ${theme.shadowOffset}px 0px 0px ${theme.primaryColor}` }}
+            />
+          ) : (
+            <div
+              className="h-40 flex items-center justify-center neo-border"
+              style={{ backgroundColor: '#E5E7EB' }}
+            >
+              <Image className="w-8 h-8 text-gray-400" />
+            </div>
+          )}
         </div>
       )
     case 'button':
       return (
-        <div className="p-4 text-center">
-          <button className="neo-button bg-neo-green text-white px-6 py-2">
+        <div className="p-6 text-center">
+          <button
+            className="neo-button text-white px-6 py-3 font-bold uppercase"
+            style={{ backgroundColor: theme.secondaryColor }}
+          >
             {(block.props.text as string) || 'Click Here'}
           </button>
         </div>
       )
     case 'wishes':
+      const items = (block.props.items as Array<{ icon: string; text: string }>) || []
       return (
-        <div className="p-4 bg-neo-cream">
-          <h3 className="font-bold mb-2">{(block.props.title as string) || 'My Wishes'}</h3>
-          <ul className="space-y-1">
-            <li>⭐ Wish item 1</li>
-            <li>⭐ Wish item 2</li>
-            <li>⭐ Wish item 3</li>
+        <div
+          className="p-6"
+          style={{ backgroundColor: `${theme.primaryColor}15` }}
+        >
+          <h3 className="font-bold mb-4 text-lg">
+            {(block.props.title as string) || 'My Wishes'}
+          </h3>
+          <ul className="space-y-2">
+            {items.length > 0 ? (
+              items.map((item, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <span>{item.icon}</span>
+                  <span>{item.text}</span>
+                </li>
+              ))
+            ) : (
+              <>
+                <li>⭐ Wish item 1</li>
+                <li>⭐ Wish item 2</li>
+                <li>⭐ Wish item 3</li>
+              </>
+            )}
           </ul>
         </div>
       )
     case 'divider':
-      return <hr className="border-t-4 border-black my-4" />
+      return (
+        <hr
+          className="my-4 mx-6"
+          style={{ borderTopWidth: theme.borderWidth, borderColor: theme.borderColor }}
+        />
+      )
     case 'footer':
       return (
-        <div className="bg-neo-green text-white p-6 text-center">
-          <p className="font-bold">{(block.props.senderName as string) || 'Your Name'}</p>
+        <div
+          className="text-white p-6 text-center"
+          style={{ backgroundColor: theme.secondaryColor }}
+        >
+          <p className="text-sm uppercase tracking-wider mb-1 opacity-80">
+            {(block.props.senderLabel as string) || 'Best Regards'}
+          </p>
+          <p className="font-bold text-xl">
+            {(block.props.senderName as string) || 'Your Name'}
+          </p>
         </div>
       )
     default:
-      return <div className="p-4 bg-gray-100">Unknown block type</div>
+      return <div className="p-4 bg-gray-100">Unknown block type: {block.type}</div>
   }
 }
 
-function BlockEditor({ block, onUpdate }: { block: Block, onUpdate: (props: Record<string, unknown>) => void }) {
+function BlockEditor({ block, onUpdate }: { block: Block; onUpdate: (props: Record<string, unknown>) => void }) {
   switch (block.type) {
     case 'header':
       return (
@@ -335,8 +798,11 @@ function BlockEditor({ block, onUpdate }: { block: Block, onUpdate: (props: Reco
             <textarea
               value={(block.props.content as string) || ''}
               onChange={(e) => onUpdate({ content: e.target.value })}
-              className="w-full neo-border p-2 mt-1 min-h-[100px]"
+              className="w-full neo-border p-2 mt-1 min-h-[150px] resize-y"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Use {"{{recipientName}}"} for personalization
+            </p>
           </div>
         </div>
       )
@@ -385,6 +851,7 @@ function BlockEditor({ block, onUpdate }: { block: Block, onUpdate: (props: Reco
         </div>
       )
     case 'wishes':
+      const items = (block.props.items as Array<{ icon: string; text: string }>) || []
       return (
         <div className="space-y-4">
           <div>
@@ -395,14 +862,70 @@ function BlockEditor({ block, onUpdate }: { block: Block, onUpdate: (props: Reco
               className="neo-border mt-1"
             />
           </div>
-          <p className="text-sm text-gray-500">
-            Wish items can be edited in the full editor
-          </p>
+          <div>
+            <Label>Wish Items</Label>
+            <div className="space-y-2 mt-2">
+              {items.map((item, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    value={item.icon}
+                    onChange={(e) => {
+                      const newItems = [...items]
+                      newItems[index] = { ...newItems[index], icon: e.target.value }
+                      onUpdate({ items: newItems })
+                    }}
+                    className="neo-border w-16"
+                    placeholder="Icon"
+                  />
+                  <Input
+                    value={item.text}
+                    onChange={(e) => {
+                      const newItems = [...items]
+                      newItems[index] = { ...newItems[index], text: e.target.value }
+                      onUpdate({ items: newItems })
+                    }}
+                    className="neo-border flex-1"
+                    placeholder="Wish text"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-red-500"
+                    onClick={() => {
+                      const newItems = items.filter((_, i) => i !== index)
+                      onUpdate({ items: newItems })
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full neo-border"
+                onClick={() => {
+                  onUpdate({ items: [...items, { icon: '⭐', text: 'New wish' }] })
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Wish
+              </Button>
+            </div>
+          </div>
         </div>
       )
     case 'footer':
       return (
         <div className="space-y-4">
+          <div>
+            <Label>Sender Label</Label>
+            <Input
+              value={(block.props.senderLabel as string) || ''}
+              onChange={(e) => onUpdate({ senderLabel: e.target.value })}
+              className="neo-border mt-1"
+            />
+          </div>
           <div>
             <Label>Sender Name</Label>
             <Input
@@ -410,37 +933,127 @@ function BlockEditor({ block, onUpdate }: { block: Block, onUpdate: (props: Reco
               onChange={(e) => onUpdate({ senderName: e.target.value })}
               className="neo-border mt-1"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Use {"{{senderName}}"} for personalization
+            </p>
           </div>
         </div>
+      )
+    case 'divider':
+      return (
+        <p className="text-gray-500 text-sm">
+          This is a simple divider. No properties to edit.
+        </p>
       )
     default:
       return <p className="text-gray-500">No properties for this block</p>
   }
 }
 
-function ThemeEditor() {
+function ThemeEditor({ theme, onUpdate }: { theme: Theme; onUpdate: (updates: Partial<Theme>) => void }) {
   return (
     <div className="space-y-4">
       <div>
         <Label>Primary Color</Label>
         <div className="flex gap-2 mt-1">
-          <Input defaultValue="#DC2626" className="neo-border" />
-          <div className="w-10 h-10 bg-neo-red neo-border flex-shrink-0" />
+          <Input
+            type="color"
+            value={theme.primaryColor}
+            onChange={(e) => onUpdate({ primaryColor: e.target.value })}
+            className="w-12 h-10 p-1 cursor-pointer"
+          />
+          <Input
+            value={theme.primaryColor}
+            onChange={(e) => onUpdate({ primaryColor: e.target.value })}
+            className="neo-border flex-1"
+          />
         </div>
       </div>
       <div>
         <Label>Secondary Color</Label>
         <div className="flex gap-2 mt-1">
-          <Input defaultValue="#16A34A" className="neo-border" />
-          <div className="w-10 h-10 bg-neo-green neo-border flex-shrink-0" />
+          <Input
+            type="color"
+            value={theme.secondaryColor}
+            onChange={(e) => onUpdate({ secondaryColor: e.target.value })}
+            className="w-12 h-10 p-1 cursor-pointer"
+          />
+          <Input
+            value={theme.secondaryColor}
+            onChange={(e) => onUpdate({ secondaryColor: e.target.value })}
+            className="neo-border flex-1"
+          />
         </div>
       </div>
       <div>
         <Label>Accent Color</Label>
         <div className="flex gap-2 mt-1">
-          <Input defaultValue="#F59E0B" className="neo-border" />
-          <div className="w-10 h-10 bg-neo-gold neo-border flex-shrink-0" />
+          <Input
+            type="color"
+            value={theme.accentColor}
+            onChange={(e) => onUpdate({ accentColor: e.target.value })}
+            className="w-12 h-10 p-1 cursor-pointer"
+          />
+          <Input
+            value={theme.accentColor}
+            onChange={(e) => onUpdate({ accentColor: e.target.value })}
+            className="neo-border flex-1"
+          />
         </div>
+      </div>
+      <div>
+        <Label>Background Color</Label>
+        <div className="flex gap-2 mt-1">
+          <Input
+            type="color"
+            value={theme.backgroundColor}
+            onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
+            className="w-12 h-10 p-1 cursor-pointer"
+          />
+          <Input
+            value={theme.backgroundColor}
+            onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
+            className="neo-border flex-1"
+          />
+        </div>
+      </div>
+      <div>
+        <Label>Surface Color</Label>
+        <div className="flex gap-2 mt-1">
+          <Input
+            type="color"
+            value={theme.surfaceColor}
+            onChange={(e) => onUpdate({ surfaceColor: e.target.value })}
+            className="w-12 h-10 p-1 cursor-pointer"
+          />
+          <Input
+            value={theme.surfaceColor}
+            onChange={(e) => onUpdate({ surfaceColor: e.target.value })}
+            className="neo-border flex-1"
+          />
+        </div>
+      </div>
+      <div>
+        <Label>Border Width</Label>
+        <Input
+          type="number"
+          value={theme.borderWidth}
+          onChange={(e) => onUpdate({ borderWidth: parseInt(e.target.value) || 4 })}
+          className="neo-border mt-1"
+          min={1}
+          max={10}
+        />
+      </div>
+      <div>
+        <Label>Shadow Offset</Label>
+        <Input
+          type="number"
+          value={theme.shadowOffset}
+          onChange={(e) => onUpdate({ shadowOffset: parseInt(e.target.value) || 8 })}
+          className="neo-border mt-1"
+          min={0}
+          max={20}
+        />
       </div>
     </div>
   )

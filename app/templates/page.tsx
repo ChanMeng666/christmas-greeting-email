@@ -1,11 +1,15 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Gift, Megaphone, Newspaper, Edit, Copy, Trash2 } from 'lucide-react'
+import { Plus, Gift, Megaphone, Newspaper, Edit, Copy, Trash2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
-// 预设模板数据
+const TEMPLATES_STORAGE_KEY = 'email-platform-templates'
+
+// Preset templates data
 const presetTemplates = [
   {
     id: 'christmas-classic',
@@ -14,6 +18,7 @@ const presetTemplates = [
     description: 'Neobrutalism-styled Christmas greeting',
     thumbnail: '🎄',
     color: 'bg-neo-red',
+    isPreset: true,
   },
   {
     id: 'new-year-2025',
@@ -22,6 +27,7 @@ const presetTemplates = [
     description: 'Celebrate the new year in style',
     thumbnail: '🎆',
     color: 'bg-purple-500',
+    isPreset: true,
   },
   {
     id: 'chinese-new-year',
@@ -30,6 +36,7 @@ const presetTemplates = [
     description: 'Traditional red and gold theme',
     thumbnail: '🧧',
     color: 'bg-red-600',
+    isPreset: true,
   },
   {
     id: 'birthday',
@@ -38,6 +45,7 @@ const presetTemplates = [
     description: 'Colorful birthday celebration',
     thumbnail: '🎂',
     color: 'bg-pink-500',
+    isPreset: true,
   },
   {
     id: 'product-launch',
@@ -46,6 +54,7 @@ const presetTemplates = [
     description: 'Announce your new product',
     thumbnail: '🚀',
     color: 'bg-neo-gold',
+    isPreset: true,
   },
   {
     id: 'newsletter',
@@ -54,8 +63,20 @@ const presetTemplates = [
     description: 'Clean and professional digest',
     thumbnail: '📰',
     color: 'bg-neo-green',
+    isPreset: true,
   },
 ]
+
+interface CustomTemplate {
+  id: string
+  name: string
+  type: 'holiday' | 'marketing' | 'newsletter'
+  description: string
+  thumbnail: string
+  color: string
+  isPreset: false
+  createdAt: string
+}
 
 const typeIcons = {
   holiday: Gift,
@@ -70,6 +91,173 @@ const typeLabels = {
 }
 
 export default function TemplatesPage() {
+  const router = useRouter()
+  const [activeFilter, setActiveFilter] = useState<'all' | 'holiday' | 'marketing' | 'newsletter'>('all')
+  const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([])
+  const [copyMessage, setCopyMessage] = useState<string | null>(null)
+
+  // Load custom templates from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY)
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        // Extract just the metadata for display
+        const templates = Object.entries(parsed).map(([id, data]: [string, unknown]) => {
+          const templateData = data as { name?: string; type?: string; createdAt?: string }
+          return {
+            id,
+            name: templateData.name || 'Untitled Template',
+            type: (templateData.type as 'holiday' | 'marketing' | 'newsletter') || 'holiday',
+            description: 'Custom template',
+            thumbnail: '✨',
+            color: 'bg-gray-500',
+            isPreset: false as const,
+            createdAt: templateData.createdAt || new Date().toISOString(),
+          }
+        })
+        setCustomTemplates(templates)
+      } catch (e) {
+        console.error('Failed to load custom templates:', e)
+      }
+    }
+  }, [])
+
+  // Combine preset and custom templates
+  const allTemplates = [...presetTemplates, ...customTemplates]
+
+  // Filter templates
+  const filteredTemplates = activeFilter === 'all'
+    ? allTemplates
+    : allTemplates.filter(t => t.type === activeFilter)
+
+  // Create new template
+  const handleCreateTemplate = () => {
+    const newId = `custom-${Date.now()}`
+    const newTemplate = {
+      id: newId,
+      name: 'New Template',
+      type: 'holiday' as const,
+      subject: 'Email Subject',
+      createdAt: new Date().toISOString(),
+      blocks: [
+        {
+          id: 'header-1',
+          type: 'header',
+          props: {
+            title: 'Your Title Here',
+            subtitle: 'Subtitle',
+          },
+          visible: true,
+        },
+        {
+          id: 'text-1',
+          type: 'text',
+          props: {
+            content: 'Dear {{recipientName}},\n\nStart writing your message here...',
+          },
+          visible: true,
+        },
+        {
+          id: 'footer-1',
+          type: 'footer',
+          props: {
+            senderLabel: 'Best Regards',
+            senderName: '{{senderName}}',
+          },
+          visible: true,
+        },
+      ],
+      theme: {
+        primaryColor: '#DC2626',
+        secondaryColor: '#16A34A',
+        accentColor: '#F59E0B',
+        backgroundColor: '#1a1a2e',
+        surfaceColor: '#FFFBEB',
+        textColor: '#000000',
+        borderColor: '#000000',
+        borderWidth: 4,
+        shadowOffset: 8,
+      },
+    }
+
+    // Save to localStorage
+    const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY) || '{}'
+    const templates = JSON.parse(saved)
+    templates[newId] = newTemplate
+    localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates))
+
+    // Navigate to editor
+    router.push(`/templates/${newId}/edit`)
+  }
+
+  // Copy template
+  const handleCopyTemplate = (template: typeof presetTemplates[0] | CustomTemplate) => {
+    const newId = `custom-${Date.now()}`
+
+    // For preset templates, we need to get the full template data
+    // For custom templates, load from localStorage
+    const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY) || '{}'
+    const templates = JSON.parse(saved)
+
+    let sourceData: Record<string, unknown>
+
+    if ('isPreset' in template && !template.isPreset) {
+      // Custom template - copy from localStorage
+      sourceData = templates[template.id] || {}
+    } else {
+      // Preset template - we'll create a copy with default structure
+      // The editor will load the preset data
+      sourceData = {
+        name: template.name,
+        type: template.type,
+      }
+    }
+
+    const newTemplate = {
+      ...sourceData,
+      id: newId,
+      name: `${template.name} (Copy)`,
+      createdAt: new Date().toISOString(),
+    }
+
+    templates[newId] = newTemplate
+    localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates))
+
+    // Update UI
+    setCustomTemplates([...customTemplates, {
+      id: newId,
+      name: `${template.name} (Copy)`,
+      type: template.type as 'holiday' | 'marketing' | 'newsletter',
+      description: 'Custom template',
+      thumbnail: '✨',
+      color: 'bg-gray-500',
+      isPreset: false,
+      createdAt: new Date().toISOString(),
+    }])
+
+    // Show message
+    setCopyMessage(`"${template.name}" copied successfully`)
+    setTimeout(() => setCopyMessage(null), 3000)
+  }
+
+  // Delete custom template
+  const handleDeleteTemplate = (id: string) => {
+    if (!confirm('Are you sure you want to delete this template?')) return
+
+    const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY) || '{}'
+    const templates = JSON.parse(saved)
+    delete templates[id]
+    localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates))
+
+    setCustomTemplates(customTemplates.filter(t => t.id !== id))
+  }
+
+  const getFilterCount = (type: 'all' | 'holiday' | 'marketing' | 'newsletter') => {
+    if (type === 'all') return allTemplates.length
+    return allTemplates.filter(t => t.type === type).length
+  }
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -82,35 +270,68 @@ export default function TemplatesPage() {
             Choose a template to customize or create your own
           </p>
         </div>
-        <Button className="neo-button bg-neo-green text-white">
+        <Button
+          className="neo-button bg-neo-green text-white"
+          onClick={handleCreateTemplate}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Create Template
         </Button>
       </div>
 
+      {/* Copy Success Message */}
+      {copyMessage && (
+        <div className="mb-6 p-4 neo-border bg-green-50 text-green-800 flex items-center gap-2">
+          <Check className="w-5 h-5" />
+          {copyMessage}
+        </div>
+      )}
+
       {/* Filter Tabs */}
       <div className="flex gap-2 mb-8">
-        <FilterTab label="All" count={presetTemplates.length} active />
+        <FilterTab
+          label="All"
+          count={getFilterCount('all')}
+          active={activeFilter === 'all'}
+          onClick={() => setActiveFilter('all')}
+        />
         <FilterTab
           label="Holiday"
-          count={presetTemplates.filter(t => t.type === 'holiday').length}
+          count={getFilterCount('holiday')}
+          active={activeFilter === 'holiday'}
+          onClick={() => setActiveFilter('holiday')}
         />
         <FilterTab
           label="Marketing"
-          count={presetTemplates.filter(t => t.type === 'marketing').length}
+          count={getFilterCount('marketing')}
+          active={activeFilter === 'marketing'}
+          onClick={() => setActiveFilter('marketing')}
         />
         <FilterTab
           label="Newsletter"
-          count={presetTemplates.filter(t => t.type === 'newsletter').length}
+          count={getFilterCount('newsletter')}
+          active={activeFilter === 'newsletter'}
+          onClick={() => setActiveFilter('newsletter')}
         />
       </div>
 
       {/* Template Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {presetTemplates.map((template) => (
-          <TemplateCard key={template.id} template={template} />
+        {filteredTemplates.map((template) => (
+          <TemplateCard
+            key={template.id}
+            template={template}
+            onCopy={() => handleCopyTemplate(template)}
+            onDelete={'isPreset' in template && !template.isPreset ? () => handleDeleteTemplate(template.id) : undefined}
+          />
         ))}
       </div>
+
+      {filteredTemplates.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No templates found in this category.</p>
+        </div>
+      )}
     </div>
   )
 }
@@ -118,14 +339,17 @@ export default function TemplatesPage() {
 function FilterTab({
   label,
   count,
-  active = false
+  active = false,
+  onClick
 }: {
   label: string
   count: number
   active?: boolean
+  onClick: () => void
 }) {
   return (
     <button
+      onClick={onClick}
       className={`px-4 py-2 text-sm font-bold uppercase tracking-wide border-2 transition-all ${
         active
           ? 'bg-black text-white border-black'
@@ -143,17 +367,29 @@ function FilterTab({
 }
 
 function TemplateCard({
-  template
+  template,
+  onCopy,
+  onDelete
 }: {
-  template: typeof presetTemplates[0]
+  template: typeof presetTemplates[0] | CustomTemplate
+  onCopy: () => void
+  onDelete?: () => void
 }) {
   const TypeIcon = typeIcons[template.type as keyof typeof typeIcons]
+  const isCustom = 'isPreset' in template && !template.isPreset
 
   return (
     <Card className="neo-border neo-shadow overflow-hidden group">
       {/* Thumbnail */}
       <div className={`${template.color} h-40 flex items-center justify-center relative`}>
         <span className="text-6xl">{template.thumbnail}</span>
+
+        {/* Custom badge */}
+        {isCustom && (
+          <div className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-1 font-bold uppercase">
+            Custom
+          </div>
+        )}
 
         {/* Hover Actions */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -163,9 +399,30 @@ function TemplateCard({
               Edit
             </Button>
           </Link>
-          <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-white hover:bg-white/20"
+            onClick={(e) => {
+              e.preventDefault()
+              onCopy()
+            }}
+          >
             <Copy className="w-4 h-4" />
           </Button>
+          {onDelete && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-red-400 hover:bg-red-500/20"
+              onClick={(e) => {
+                e.preventDefault()
+                onDelete()
+              }}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </div>
 
