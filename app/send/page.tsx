@@ -793,11 +793,16 @@ function StepPreview({
           const data = await response.json()
 
           if (data.success && data.template?.html) {
-            // Replace variables in the HTML
+            // Replace variables in the HTML (support both formats)
             let html = data.template.html
             const recipientName = selectedContact.firstName || selectedContact.email.split('@')[0]
+            const senderName = settings.senderName || 'Your Name'
+            // Local template format: {{variableName}}
             html = html.replace(/\{\{recipientName\}\}/g, recipientName)
-            html = html.replace(/\{\{senderName\}\}/g, settings.senderName || 'Your Name')
+            html = html.replace(/\{\{senderName\}\}/g, senderName)
+            // Resend template format: {{{VARIABLE_NAME}}}
+            html = html.replace(/\{\{\{RECIPIENT_NAME\}\}\}/g, recipientName)
+            html = html.replace(/\{\{\{SENDER_NAME\}\}\}/g, senderName)
             setPreviewHtml(html)
           } else {
             setPreviewHtml('<p style="color:red;padding:20px;">Failed to load Resend cloud template</p>')
@@ -1062,10 +1067,15 @@ function StepSend({
         let emailHtml: string
 
         if (isCloudTemplate && resendTemplateHtml) {
-          // Use Resend cloud template HTML with variable replacement
+          // Use Resend cloud template HTML with variable replacement (support both formats)
+          const senderName = settings.senderName || 'Your Name'
           emailHtml = resendTemplateHtml
+            // Local template format: {{variableName}}
             .replace(/\{\{recipientName\}\}/g, recipientName)
-            .replace(/\{\{senderName\}\}/g, settings.senderName || 'Your Name')
+            .replace(/\{\{senderName\}\}/g, senderName)
+            // Resend template format: {{{VARIABLE_NAME}}}
+            .replace(/\{\{\{RECIPIENT_NAME\}\}\}/g, recipientName)
+            .replace(/\{\{\{SENDER_NAME\}\}\}/g, senderName)
         } else {
           // Render personalized HTML from blocks
           const previewResponse = await fetch('/api/preview', {
