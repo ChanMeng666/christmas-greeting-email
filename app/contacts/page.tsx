@@ -116,7 +116,7 @@ export default function ContactsPage() {
     }
 
     const settings = JSON.parse(settingsStr)
-    if (!settings.apiKey || !settings.audienceId) {
+    if (!settings.resendApiKey || !settings.audienceId) {
       setSyncStatus('error')
       setSyncMessage('Please configure API Key and Segment ID in Settings first')
       return
@@ -127,7 +127,7 @@ export default function ContactsPage() {
 
     try {
       const response = await fetch(
-        `/api/contacts?apiKey=${encodeURIComponent(settings.apiKey)}&audienceId=${encodeURIComponent(settings.audienceId)}`
+        `/api/contacts?apiKey=${encodeURIComponent(settings.resendApiKey)}&audienceId=${encodeURIComponent(settings.audienceId)}`
       )
       const data = await response.json()
 

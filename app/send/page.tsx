@@ -762,7 +762,7 @@ function StepSend({
   }, [templateId])
 
   const handleSend = async () => {
-    if (!settings.apiKey) {
+    if (!settings.resendApiKey) {
       setError('Please configure your Resend API Key in Settings')
       return
     }
@@ -829,7 +829,7 @@ function StepSend({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            apiKey: settings.apiKey,
+            apiKey: settings.resendApiKey,
             from: settings.senderEmail,
             to: contact.email,
             subject: subject.replace(/\{\{recipientName\}\}/g, recipientName),
@@ -891,7 +891,7 @@ function StepSend({
           />
         )}
 
-        {!settings.apiKey && !error && (
+        {!settings.resendApiKey && !error && (
           <SmartAlert errorCode="API_KEY_MISSING" className="mb-6 text-left" />
         )}
 
@@ -934,7 +934,7 @@ function StepSend({
           <Button
             className="neo-button bg-neo-green text-white"
             onClick={handleSend}
-            disabled={!settings.apiKey || !settings.senderEmail}
+            disabled={!settings.resendApiKey || !settings.senderEmail}
           >
             <Send className="w-4 h-4 mr-2" />
             Send {contacts.length} Email{contacts.length !== 1 ? 's' : ''}

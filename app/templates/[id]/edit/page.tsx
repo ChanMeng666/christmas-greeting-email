@@ -437,7 +437,7 @@ export default function TemplateEditorPage() {
     }
 
     const settings = JSON.parse(settingsStr)
-    if (!settings.apiKey) {
+    if (!settings.resendApiKey) {
       alert('Please configure your Resend API key in Settings first.')
       return
     }
@@ -477,7 +477,7 @@ export default function TemplateEditorPage() {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            apiKey: settings.apiKey,
+            apiKey: settings.resendApiKey,
             name: templateName,
             html: previewData.html,
           }),
@@ -489,7 +489,7 @@ export default function TemplateEditorPage() {
           await fetch(`/api/resend-templates/${resendTemplateId}/publish`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ apiKey: settings.apiKey }),
+            body: JSON.stringify({ apiKey: settings.resendApiKey }),
           })
         }
       } else {
@@ -498,7 +498,7 @@ export default function TemplateEditorPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            apiKey: settings.apiKey,
+            apiKey: settings.resendApiKey,
             name: templateName,
             html: previewData.html,
             variables: resendVariables,
