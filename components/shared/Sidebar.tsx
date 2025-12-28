@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   Home,
@@ -8,7 +9,6 @@ import {
   Users,
   Send,
   Settings,
-  Mail,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
@@ -62,16 +62,22 @@ export function Sidebar() {
       {/* Logo */}
       <div className="p-4 border-b-4 border-black">
         <Link href="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-neo-red text-white flex items-center justify-center neo-border font-black text-lg">
-            <Mail className="w-5 h-5" />
+          <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
+            <Image
+              src="/christmas-greeting-email-logo.svg"
+              alt="Christmas Greeting Email Logo"
+              width={40}
+              height={33}
+              className="object-contain"
+            />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-black text-sm uppercase tracking-tight">
-                Email
+              <span className="font-black text-lg tracking-tight text-neo-red">
+                SendJoy
               </span>
               <span className="text-xs text-gray-500 uppercase tracking-wider">
-                Platform
+                Email Platform
               </span>
             </div>
           )}

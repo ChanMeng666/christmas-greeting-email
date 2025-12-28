@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Menu, X, Mail, Home, Palette, Users, Send, Settings } from 'lucide-react'
+import { Menu, X, Home, Palette, Users, Send, Settings } from 'lucide-react'
 import { useMobileNav } from '@/contexts/MobileNavContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -33,15 +34,21 @@ export function MobileHeader() {
       <header className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b-4 border-black">
         <div className="flex items-center justify-between p-3">
           <Link href="/" className="flex items-center gap-2" onClick={close}>
-            <div className="w-10 h-10 bg-neo-red text-white flex items-center justify-center neo-border font-black">
-              <Mail className="w-5 h-5" />
+            <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
+              <Image
+                src="/christmas-greeting-email-logo.svg"
+                alt="Christmas Greeting Email Logo"
+                width={40}
+                height={33}
+                className="object-contain"
+              />
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-sm uppercase tracking-tight">
-                Email
+              <span className="font-black text-lg tracking-tight text-neo-red">
+                SendJoy
               </span>
               <span className="text-xs text-gray-500 uppercase tracking-wider">
-                Platform
+                Email Platform
               </span>
             </div>
           </Link>

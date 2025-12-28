@@ -49,10 +49,10 @@ export default function HomePage() {
       {/* Page Header */}
       <div className="mb-6 md:mb-8">
         <h1 className="neo-title-lg md:neo-title-xl mb-2">
-          Email Template Platform
+          Welcome to <span className="text-neo-red">SendJoy</span>
         </h1>
         <p className="text-gray-600 text-base md:text-lg">
-          Create beautiful emails for holidays, marketing, and newsletters
+          Create and send beautiful emails for holidays, marketing, and newsletters
         </p>
       </div>
 

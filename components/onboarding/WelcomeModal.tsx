@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Sparkles, ArrowRight, Mail } from 'lucide-react'
+import Image from 'next/image'
+import { X, Sparkles, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface WelcomeModalProps {
@@ -68,12 +69,18 @@ export function WelcomeModal({ onGetStarted, onSkip }: WelcomeModalProps) {
         <div className="text-center">
           {/* Icon */}
           <div className="inline-flex items-center justify-center w-20 h-20 bg-neo-cream neo-border mb-6">
-            <Mail className="w-10 h-10 text-neo-red" />
+            <Image
+              src="/christmas-greeting-email-logo.svg"
+              alt="Christmas Greeting Email Logo"
+              width={56}
+              height={46}
+              className="object-contain"
+            />
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl font-black uppercase tracking-tight mb-2">
-            Welcome to Email Platform!
+          <h2 className="text-2xl font-black tracking-tight mb-2">
+            Welcome to <span className="text-neo-red">SendJoy</span>!
           </h2>
 
           {/* Description */}

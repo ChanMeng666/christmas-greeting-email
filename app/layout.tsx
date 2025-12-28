@@ -9,8 +9,12 @@ import { Toaster } from '@/components/ui/toaster'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Email Template Platform',
-  description: 'Create beautiful email templates for holidays, marketing, and newsletters',
+  title: 'SendJoy - Email Template Platform',
+  description: 'Create and send beautiful email templates for holidays, marketing, and newsletters',
+  icons: {
+    icon: '/christmas-greeting-email-logo.svg',
+    apple: '/christmas-greeting-email-logo.svg',
+  },
 }
 
 export default function RootLayout({
