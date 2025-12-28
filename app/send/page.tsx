@@ -727,7 +727,7 @@ function StepSend({
   const [sent, setSent] = useState(false)
   const [results, setResults] = useState<{ email: string; success: boolean; error?: string }[]>([])
   const [progress, setProgress] = useState(0)
-  const [settings, setSettings] = useState<{ apiKey?: string; senderEmail?: string; senderName?: string }>({})
+  const [settings, setSettings] = useState<{ resendApiKey?: string; senderEmail?: string; senderName?: string }>({})
   const [error, setError] = useState<string | null>(null)
   const [templateData, setTemplateData] = useState<TemplateData | null>(null)
 
