@@ -637,6 +637,16 @@ function StepRecipients({
   )
 }
 
+// Helper to check if template is a Resend cloud template
+function isResendCloudTemplate(templateId: string | null): boolean {
+  return templateId?.startsWith('resend-') ?? false
+}
+
+// Helper to get the actual Resend template ID
+function getResendTemplateId(templateId: string): string {
+  return templateId.replace('resend-', '')
+}
+
 function StepSubject({
   value,
   onChange,
@@ -646,23 +656,57 @@ function StepSubject({
   onChange: (v: string) => void
   templateId: string | null
 }) {
+  const [loading, setLoading] = useState(false)
+  const [templateName, setTemplateName] = useState<string | null>(null)
+
   // Set default subject from template when component mounts
   useEffect(() => {
     if (!value && templateId) {
-      const preset = presetTemplateData[templateId]
-      if (preset) {
-        onChange(preset.subject)
-      } else {
-        // Check custom templates
-        const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY)
-        if (saved) {
+      // Check if it's a Resend cloud template
+      if (isResendCloudTemplate(templateId)) {
+        // Fetch template from Resend API
+        const fetchResendTemplate = async () => {
+          setLoading(true)
           try {
-            const templates = JSON.parse(saved)
-            if (templates[templateId]?.subject) {
-              onChange(templates[templateId].subject)
+            const settings = localStorage.getItem(SETTINGS_STORAGE_KEY)
+            if (!settings) return
+
+            const parsed = JSON.parse(settings)
+            if (!parsed.resendApiKey) return
+
+            const resendId = getResendTemplateId(templateId)
+            const response = await fetch(`/api/resend-templates/${resendId}?apiKey=${encodeURIComponent(parsed.resendApiKey)}`)
+            const data = await response.json()
+
+            if (data.success && data.template) {
+              setTemplateName(data.template.name)
+              // Use template name as default subject for Resend cloud templates
+              onChange(`${data.template.name}`)
             }
           } catch (e) {
-            console.error('Failed to load template subject:', e)
+            console.error('Failed to fetch Resend template:', e)
+          } finally {
+            setLoading(false)
+          }
+        }
+        fetchResendTemplate()
+      } else {
+        // Check preset templates
+        const preset = presetTemplateData[templateId]
+        if (preset) {
+          onChange(preset.subject)
+        } else {
+          // Check custom templates
+          const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY)
+          if (saved) {
+            try {
+              const templates = JSON.parse(saved)
+              if (templates[templateId]?.subject) {
+                onChange(templates[templateId].subject)
+              }
+            } catch (e) {
+              console.error('Failed to load template subject:', e)
+            }
           }
         }
       }
@@ -671,7 +715,21 @@ function StepSubject({
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Email Subject</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold">Email Subject</h2>
+        {loading && (
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Loading template...
+          </div>
+        )}
+      </div>
+      {templateName && (
+        <p className="text-sm text-blue-600 mb-2 flex items-center gap-1">
+          <Cloud className="w-4 h-4" />
+          Using Resend cloud template: {templateName}
+        </p>
+      )}
       <Input
         placeholder="Enter email subject..."
         value={value}
@@ -697,7 +755,8 @@ function StepPreview({
   const [previewHtml, setPreviewHtml] = useState('')
   const [loading, setLoading] = useState(true)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
-  const [settings, setSettings] = useState<{ senderName?: string }>({})
+  const [settings, setSettings] = useState<{ senderName?: string; resendApiKey?: string }>({})
+  const [isCloudTemplate, setIsCloudTemplate] = useState(false)
 
   useEffect(() => {
     const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY)
@@ -719,6 +778,40 @@ function StepPreview({
 
     const loadPreview = async () => {
       setLoading(true)
+
+      // Check if it's a Resend cloud template
+      if (isResendCloudTemplate(templateId)) {
+        setIsCloudTemplate(true)
+        try {
+          if (!settings.resendApiKey) {
+            setPreviewHtml('<p style="color:red;padding:20px;">API key not configured</p>')
+            return
+          }
+
+          const resendId = getResendTemplateId(templateId)
+          const response = await fetch(`/api/resend-templates/${resendId}?apiKey=${encodeURIComponent(settings.resendApiKey)}`)
+          const data = await response.json()
+
+          if (data.success && data.template?.html) {
+            // Replace variables in the HTML
+            let html = data.template.html
+            const recipientName = selectedContact.firstName || selectedContact.email.split('@')[0]
+            html = html.replace(/\{\{recipientName\}\}/g, recipientName)
+            html = html.replace(/\{\{senderName\}\}/g, settings.senderName || 'Your Name')
+            setPreviewHtml(html)
+          } else {
+            setPreviewHtml('<p style="color:red;padding:20px;">Failed to load Resend cloud template</p>')
+          }
+        } catch (e) {
+          console.error('Failed to fetch Resend template:', e)
+          setPreviewHtml('<p style="color:red;padding:20px;">Failed to load Resend cloud template</p>')
+        } finally {
+          setLoading(false)
+        }
+        return
+      }
+
+      setIsCloudTemplate(false)
 
       // Get template data - prioritize localStorage (user modifications) over presets
       let blocks: Block[] = []
@@ -779,7 +872,15 @@ function StepPreview({
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Preview</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold">Preview</h2>
+        {isCloudTemplate && (
+          <span className="text-sm text-blue-600 flex items-center gap-1">
+            <Cloud className="w-4 h-4" />
+            Resend Cloud Template
+          </span>
+        )}
+      </div>
 
       {/* Contact selector for preview */}
       {contacts.length > 1 && (
@@ -842,6 +943,7 @@ function StepSend({
   const [settings, setSettings] = useState<{ resendApiKey?: string; senderEmail?: string; senderName?: string }>({})
   const [error, setError] = useState<string | null>(null)
   const [templateData, setTemplateData] = useState<TemplateData | null>(null)
+  const [isCloudTemplate, setIsCloudTemplate] = useState(false)
 
   useEffect(() => {
     const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY)
@@ -852,6 +954,14 @@ function StepSend({
         console.error('Failed to load settings:', e)
       }
     }
+
+    // Check if it's a Resend cloud template
+    if (templateId && isResendCloudTemplate(templateId)) {
+      setIsCloudTemplate(true)
+      return
+    }
+
+    setIsCloudTemplate(false)
 
     // Load template data to check for Resend sync status
     // Prioritize localStorage (user modifications) over presets
@@ -891,56 +1001,91 @@ function StepSend({
     setResults([])
     setProgress(0)
 
-    // Get template data - prioritize localStorage (user modifications) over presets
-    let blocks: Block[] = []
-    let theme: Theme | null = null
-    let foundInStorage = false
+    const sendResults: { email: string; success: boolean; error?: string }[] = []
 
-    // First, try to load from localStorage (saved user modifications)
-    const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY)
-    if (saved) {
+    // For Resend cloud templates, fetch HTML from API
+    let resendTemplateHtml: string | null = null
+    if (isCloudTemplate && templateId) {
       try {
-        const templates = JSON.parse(saved)
-        if (templates[templateId!]) {
-          blocks = templates[templateId!].blocks || []
-          theme = templates[templateId!].theme
-          foundInStorage = true
+        const resendId = getResendTemplateId(templateId)
+        const response = await fetch(`/api/resend-templates/${resendId}?apiKey=${encodeURIComponent(settings.resendApiKey)}`)
+        const data = await response.json()
+        if (data.success && data.template?.html) {
+          resendTemplateHtml = data.template.html
+        } else {
+          setError('Failed to load Resend cloud template')
+          setSending(false)
+          return
         }
       } catch (e) {
-        console.error('Failed to load template from localStorage:', e)
+        console.error('Failed to fetch Resend template:', e)
+        setError('Failed to load Resend cloud template')
+        setSending(false)
+        return
       }
     }
 
-    // If not found in localStorage, use preset data
-    if (!foundInStorage && presetTemplateData[templateId!]) {
-      blocks = presetTemplateData[templateId!].blocks
-      theme = presetTemplateData[templateId!].theme
-    }
+    // For local templates, get blocks and theme
+    let blocks: Block[] = []
+    let theme: Theme | null = null
 
-    const sendResults: { email: string; success: boolean; error?: string }[] = []
+    if (!isCloudTemplate) {
+      let foundInStorage = false
+
+      // First, try to load from localStorage (saved user modifications)
+      const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY)
+      if (saved) {
+        try {
+          const templates = JSON.parse(saved)
+          if (templates[templateId!]) {
+            blocks = templates[templateId!].blocks || []
+            theme = templates[templateId!].theme
+            foundInStorage = true
+          }
+        } catch (e) {
+          console.error('Failed to load template from localStorage:', e)
+        }
+      }
+
+      // If not found in localStorage, use preset data
+      if (!foundInStorage && presetTemplateData[templateId!]) {
+        blocks = presetTemplateData[templateId!].blocks
+        theme = presetTemplateData[templateId!].theme
+      }
+    }
 
     for (let i = 0; i < contacts.length; i++) {
       const contact = contacts[i]
       const recipientName = contact.firstName || contact.email.split('@')[0]
 
       try {
-        // Render personalized HTML
-        const previewResponse = await fetch('/api/preview', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            blocks,
-            theme,
-            variables: {
-              recipientName,
-              senderName: settings.senderName || 'Your Name',
-            },
-          }),
-        })
+        let emailHtml: string
 
-        const previewData = await previewResponse.json()
-        if (!previewData.success) {
-          throw new Error('Failed to render email')
+        if (isCloudTemplate && resendTemplateHtml) {
+          // Use Resend cloud template HTML with variable replacement
+          emailHtml = resendTemplateHtml
+            .replace(/\{\{recipientName\}\}/g, recipientName)
+            .replace(/\{\{senderName\}\}/g, settings.senderName || 'Your Name')
+        } else {
+          // Render personalized HTML from blocks
+          const previewResponse = await fetch('/api/preview', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              blocks,
+              theme,
+              variables: {
+                recipientName,
+                senderName: settings.senderName || 'Your Name',
+              },
+            }),
+          })
+
+          const previewData = await previewResponse.json()
+          if (!previewData.success) {
+            throw new Error('Failed to render email')
+          }
+          emailHtml = previewData.html
         }
 
         // Send email
@@ -952,7 +1097,7 @@ function StepSend({
             from: settings.senderEmail,
             to: contact.email,
             subject: subject.replace(/\{\{recipientName\}\}/g, recipientName),
-            html: previewData.html,
+            html: emailHtml,
           }),
         })
 
@@ -1025,7 +1170,16 @@ function StepSend({
             <strong>From:</strong> {settings.senderEmail || 'Not configured'}<br />
             <strong>Subject:</strong> {subject}<br />
             <strong>Recipients:</strong> {contacts.length}
-            {templateData?.resendTemplateId && (
+            {isCloudTemplate && (
+              <>
+                <br />
+                <span className="inline-flex items-center gap-1 text-blue-600">
+                  <Cloud className="w-3 h-3" />
+                  <strong>Resend Cloud Template</strong>
+                </span>
+              </>
+            )}
+            {!isCloudTemplate && templateData?.resendTemplateId && (
               <>
                 <br />
                 <span className="inline-flex items-center gap-1 text-green-600">
