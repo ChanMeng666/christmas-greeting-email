@@ -19,8 +19,23 @@ const PRESET_TEMPLATE_IDS = [
   'newsletter',
 ]
 
+interface TemplateWithSync {
+  id: string
+  name: string
+  type: 'holiday' | 'marketing' | 'newsletter'
+  description: string
+  thumbnail: string
+  color: string
+  isPreset: boolean
+  createdAt?: string
+  // Resend sync fields
+  resendTemplateId?: string
+  syncedAt?: string
+  isPublished?: boolean
+}
+
 // Preset templates data
-const presetTemplates = [
+const presetTemplates: TemplateWithSync[] = [
   {
     id: 'christmas-classic',
     name: 'Classic Christmas',
@@ -77,21 +92,6 @@ const presetTemplates = [
   },
 ]
 
-interface CustomTemplate {
-  id: string
-  name: string
-  type: 'holiday' | 'marketing' | 'newsletter'
-  description: string
-  thumbnail: string
-  color: string
-  isPreset: false
-  createdAt: string
-  // Resend sync fields
-  resendTemplateId?: string
-  syncedAt?: string
-  isPublished?: boolean
-}
-
 const typeIcons = {
   holiday: Gift,
   marketing: Megaphone,
@@ -107,52 +107,54 @@ const typeLabels = {
 export default function TemplatesPage() {
   const router = useRouter()
   const [activeFilter, setActiveFilter] = useState<'all' | 'holiday' | 'marketing' | 'newsletter' | 'custom'>('all')
-  const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([])
+  const [allTemplates, setAllTemplates] = useState<TemplateWithSync[]>([])
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
 
-  // Load custom templates from localStorage
-  // Only load templates that are NOT preset templates (truly custom ones)
+  // Load templates from localStorage and merge with presets
   useEffect(() => {
     const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY)
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        // Extract just the metadata for display, excluding preset template IDs
-        const templates = Object.entries(parsed)
-          .filter(([id]) => !PRESET_TEMPLATE_IDS.includes(id))
-          .map(([id, data]: [string, unknown]) => {
-            const templateData = data as {
-              name?: string
-              type?: string
-              createdAt?: string
-              resendTemplateId?: string
-              syncedAt?: string
-              isPublished?: boolean
-            }
-            return {
-              id,
-              name: templateData.name || 'Untitled Template',
-              type: (templateData.type as 'holiday' | 'marketing' | 'newsletter') || 'holiday',
-              description: 'Custom template',
-              thumbnail: '✨',
-              color: 'bg-gray-500',
-              isPreset: false as const,
-              createdAt: templateData.createdAt || new Date().toISOString(),
-              // Include sync fields
-              resendTemplateId: templateData.resendTemplateId,
-              syncedAt: templateData.syncedAt,
-              isPublished: templateData.isPublished,
-            }
-          })
-        setCustomTemplates(templates)
-      } catch (e) {
-        console.error('Failed to load custom templates:', e)
-      }
-    }
-  }, [])
+    const savedData: Record<string, {
+      name?: string
+      type?: string
+      createdAt?: string
+      resendTemplateId?: string
+      syncedAt?: string
+      isPublished?: boolean
+    }> = saved ? JSON.parse(saved) : {}
 
-  // Combine preset and custom templates
-  const allTemplates = [...presetTemplates, ...customTemplates]
+    // Update preset templates with sync info from localStorage
+    const presetsWithSyncInfo: TemplateWithSync[] = presetTemplates.map(preset => {
+      const storedData = savedData[preset.id]
+      if (storedData) {
+        return {
+          ...preset,
+          resendTemplateId: storedData.resendTemplateId,
+          syncedAt: storedData.syncedAt,
+          isPublished: storedData.isPublished,
+        }
+      }
+      return preset
+    })
+
+    // Load truly custom templates (non-preset IDs)
+    const customTemplates: TemplateWithSync[] = Object.entries(savedData)
+      .filter(([id]) => !PRESET_TEMPLATE_IDS.includes(id))
+      .map(([id, data]) => ({
+        id,
+        name: data.name || 'Untitled Template',
+        type: (data.type as 'holiday' | 'marketing' | 'newsletter') || 'holiday',
+        description: 'Custom template',
+        thumbnail: '✨',
+        color: 'bg-gray-500',
+        isPreset: false,
+        createdAt: data.createdAt || new Date().toISOString(),
+        resendTemplateId: data.resendTemplateId,
+        syncedAt: data.syncedAt,
+        isPublished: data.isPublished,
+      }))
+
+    setAllTemplates([...presetsWithSyncInfo, ...customTemplates])
+  }, [])
 
   // Filter templates
   const filteredTemplates = activeFilter === 'all'
@@ -222,7 +224,7 @@ export default function TemplatesPage() {
   }
 
   // Copy template
-  const handleCopyTemplate = (template: typeof presetTemplates[0] | CustomTemplate) => {
+  const handleCopyTemplate = (template: TemplateWithSync) => {
     const newId = `custom-${Date.now()}`
 
     // For preset templates, we need to get the full template data
@@ -232,7 +234,7 @@ export default function TemplatesPage() {
 
     let sourceData: Record<string, unknown>
 
-    if ('isPreset' in template && !template.isPreset) {
+    if (!template.isPreset) {
       // Custom template - copy from localStorage
       sourceData = templates[template.id] || {}
     } else {
@@ -254,8 +256,8 @@ export default function TemplatesPage() {
     templates[newId] = newTemplate
     localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates))
 
-    // Update UI
-    setCustomTemplates([...customTemplates, {
+    // Update UI - add new custom template to the list
+    setAllTemplates(prev => [...prev, {
       id: newId,
       name: `${template.name} (Copy)`,
       type: template.type as 'holiday' | 'marketing' | 'newsletter',
@@ -280,12 +282,13 @@ export default function TemplatesPage() {
     delete templates[id]
     localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates))
 
-    setCustomTemplates(customTemplates.filter(t => t.id !== id))
+    setAllTemplates(prev => prev.filter(t => t.id !== id))
   }
 
+  // Get count for each filter type
   const getFilterCount = (type: 'all' | 'holiday' | 'marketing' | 'newsletter' | 'custom') => {
     if (type === 'all') return allTemplates.length
-    if (type === 'custom') return customTemplates.length
+    if (type === 'custom') return allTemplates.filter(t => !t.isPreset).length
     return allTemplates.filter(t => t.type === type).length
   }
 
@@ -367,7 +370,7 @@ export default function TemplatesPage() {
             key={template.id}
             template={template}
             onCopy={() => handleCopyTemplate(template)}
-            onDelete={'isPreset' in template && !template.isPreset ? () => handleDeleteTemplate(template.id) : undefined}
+            onDelete={!template.isPreset ? () => handleDeleteTemplate(template.id) : undefined}
           />
         ))}
       </div>
@@ -416,13 +419,13 @@ function TemplateCard({
   onCopy,
   onDelete
 }: {
-  template: typeof presetTemplates[0] | CustomTemplate
+  template: TemplateWithSync
   onCopy: () => void
   onDelete?: () => void
 }) {
   const TypeIcon = typeIcons[template.type as keyof typeof typeIcons]
-  const isCustom = 'isPreset' in template && !template.isPreset
-  const isSynced = isCustom && 'resendTemplateId' in template && template.resendTemplateId
+  const isCustom = !template.isPreset
+  const isSynced = !!template.resendTemplateId
 
   return (
     <Card className="neo-border neo-shadow overflow-hidden group">
@@ -438,11 +441,11 @@ function TemplateCard({
               Custom
             </div>
           )}
-          {/* Synced badge */}
+          {/* Synced badge - now works for both preset and custom templates */}
           {isSynced && (
             <div
               className="bg-green-500 text-white text-xs px-2 py-1 font-bold uppercase flex items-center gap-1"
-              title={`Synced: ${(template as CustomTemplate).syncedAt ? new Date((template as CustomTemplate).syncedAt!).toLocaleString() : 'Unknown'}`}
+              title={`Synced: ${template.syncedAt ? new Date(template.syncedAt).toLocaleString() : 'Unknown'}`}
             >
               <Cloud className="w-3 h-3" />
               Synced

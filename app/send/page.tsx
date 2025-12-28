@@ -250,40 +250,44 @@ export default function SendPage() {
       }
     }
 
-    // Load custom templates and combine with presets
-    const templateList: { id: string; name: string; emoji: string; isCustom?: boolean; resendTemplateId?: string; syncedAt?: string }[] = [
+    // Load templates and merge with sync info from localStorage
+    const savedTemplates = localStorage.getItem(TEMPLATES_STORAGE_KEY)
+    const savedData: Record<string, { name?: string; resendTemplateId?: string; syncedAt?: string }> =
+      savedTemplates ? JSON.parse(savedTemplates) : {}
+
+    // Preset templates with sync info from localStorage
+    const presetList: { id: string; name: string; emoji: string; isCustom?: boolean; resendTemplateId?: string; syncedAt?: string }[] = [
       { id: 'christmas-classic', name: 'Classic Christmas', emoji: '🎄' },
       { id: 'new-year-2025', name: 'New Year 2025', emoji: '🎆' },
       { id: 'chinese-new-year', name: 'Chinese New Year', emoji: '🧧' },
       { id: 'birthday', name: 'Birthday Wishes', emoji: '🎂' },
       { id: 'product-launch', name: 'Product Launch', emoji: '🚀' },
       { id: 'newsletter', name: 'Newsletter', emoji: '📰' },
-    ]
-
-    const savedTemplates = localStorage.getItem(TEMPLATES_STORAGE_KEY)
-    if (savedTemplates) {
-      try {
-        const customTemplates = JSON.parse(savedTemplates)
-        Object.entries(customTemplates).forEach(([id, data]) => {
-          const template = data as { name?: string; resendTemplateId?: string; syncedAt?: string }
-          // Only add truly custom templates (not preset templates that were modified)
-          if (!PRESET_TEMPLATE_IDS.includes(id)) {
-            templateList.push({
-              id,
-              name: template.name || 'Custom Template',
-              emoji: '✨',
-              isCustom: true,
-              resendTemplateId: template.resendTemplateId,
-              syncedAt: template.syncedAt,
-            })
-          }
-        })
-      } catch (e) {
-        console.error('Failed to load templates:', e)
+    ].map(preset => {
+      const storedData = savedData[preset.id]
+      if (storedData && storedData.resendTemplateId) {
+        return {
+          ...preset,
+          resendTemplateId: storedData.resendTemplateId,
+          syncedAt: storedData.syncedAt,
+        }
       }
-    }
+      return preset
+    })
 
-    setTemplates(templateList)
+    // Add truly custom templates (non-preset IDs)
+    const customList = Object.entries(savedData)
+      .filter(([id]) => !PRESET_TEMPLATE_IDS.includes(id))
+      .map(([id, data]) => ({
+        id,
+        name: data.name || 'Custom Template',
+        emoji: '✨',
+        isCustom: true,
+        resendTemplateId: data.resendTemplateId,
+        syncedAt: data.syncedAt,
+      }))
+
+    setTemplates([...presetList, ...customList])
   }, [])
 
   const canProceed = () => {
