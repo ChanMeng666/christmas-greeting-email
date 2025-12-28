@@ -37,7 +37,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 md:p-8">
       {/* Welcome Modal for first-time visitors */}
       {showWelcome && (
         <WelcomeModal
@@ -47,11 +47,11 @@ export default function HomePage() {
       )}
 
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
+      <div className="mb-6 md:mb-8">
+        <h1 className="neo-title-lg md:neo-title-xl mb-2">
           Email Template Platform
         </h1>
-        <p className="text-gray-600 text-lg">
+        <p className="text-gray-600 text-base md:text-lg">
           Create beautiful emails for holidays, marketing, and newsletters
         </p>
       </div>
@@ -93,12 +93,12 @@ export default function HomePage() {
 
       {/* 快速开始指南 */}
       <div className="neo-card">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-neo-cream rounded-lg">
+        <div className="flex flex-col sm:flex-row items-start gap-4">
+          <div className="p-3 bg-neo-cream neo-border">
             <Sparkles className="w-6 h-6 text-neo-gold" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-bold mb-2">Getting Started</h3>
+            <h3 className="neo-heading mb-2">Getting Started</h3>
             <ol className="list-decimal list-inside space-y-2 text-gray-600 mb-4">
               <li>Go to <strong>Settings</strong> and configure your Resend API Key</li>
               <li>Add your <strong>Contacts</strong> or sync from Resend Audience</li>
@@ -106,7 +106,7 @@ export default function HomePage() {
               <li>Use the <strong>Send Wizard</strong> to deliver your emails</li>
             </ol>
             <Link href="/settings">
-              <Button className="neo-button bg-neo-red text-white">
+              <Button variant="neo">
                 Configure Settings
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
@@ -137,10 +137,10 @@ function QuickActionCard({
   return (
     <Link href={href}>
       <div className="neo-card hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all cursor-pointer h-full">
-        <div className={`w-14 h-14 ${color} text-white rounded-lg flex items-center justify-center mb-4 neo-border`}>
+        <div className={`w-14 h-14 ${color} text-white flex items-center justify-center mb-4 neo-border`}>
           {icon}
         </div>
-        <h3 className="text-lg font-bold mb-1">{title}</h3>
+        <h3 className="neo-subheading mb-1">{title}</h3>
         <p className="text-gray-600 text-sm">{description}</p>
       </div>
     </Link>

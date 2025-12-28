@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
+import { Loader2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -18,12 +19,16 @@ const buttonVariants = cva(
           'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
-        neo: 'bg-primary text-white border-4 border-black shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none font-bold uppercase tracking-wide',
+        neo: 'bg-primary text-white border-4 border-black shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none font-bold uppercase tracking-wide transition-all duration-150',
+        'neo-secondary': 'bg-secondary text-white border-4 border-black shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none font-bold uppercase tracking-wide transition-all duration-150',
+        'neo-outline': 'bg-white text-black border-4 border-black shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none font-bold uppercase tracking-wide transition-all duration-150',
+        'neo-gold': 'bg-neo-gold text-white border-4 border-black shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none font-bold uppercase tracking-wide transition-all duration-150',
       },
       size: {
         default: 'h-10 px-4 py-2',
         sm: 'h-9 px-3',
         lg: 'h-11 px-8',
+        xl: 'h-14 px-10 text-lg',
         icon: 'h-10 w-10',
       },
     },
@@ -38,17 +43,29 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
+  isLoading?: boolean
+  loadingText?: string
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, isLoading = false, loadingText, children, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        disabled={disabled || isLoading}
         {...props}
-      />
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            {loadingText || children}
+          </>
+        ) : (
+          children
+        )}
+      </Comp>
     )
   }
 )

@@ -3,11 +3,11 @@ import { Mail, Github, ExternalLink } from 'lucide-react'
 
 export function DeveloperBadge() {
   return (
-    <div className="mt-12 neo-border neo-shadow bg-gradient-to-r from-neo-cream to-white p-5">
+    <div className="mt-8 md:mt-12 neo-border shadow-neo bg-gradient-to-r from-neo-cream to-white p-4 sm:p-5">
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
         {/* Developer Logo */}
         <div className="flex-shrink-0">
-          <div className="w-16 h-16 neo-border bg-white p-2 rounded-lg">
+          <div className="w-16 h-16 neo-border bg-white p-2">
             <Image
               src="/chan_logo.svg"
               alt="Chan Meng Logo"
@@ -30,8 +30,7 @@ export function DeveloperBadge() {
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-sm">
             <a
               href="mailto:chanmeng.dev@gmail.com"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neo-red text-white font-medium neo-border hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all neo-shadow"
-              style={{ boxShadow: '2px 2px 0px 0px #000000' }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neo-red text-white font-medium neo-border-sm shadow-neo-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
               <Mail className="w-3.5 h-3.5" />
               Contact
@@ -40,8 +39,7 @@ export function DeveloperBadge() {
               href="https://github.com/ChanMeng666"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white font-medium neo-border hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
-              style={{ boxShadow: '2px 2px 0px 0px #000000' }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white font-medium neo-border-sm shadow-neo-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
               <Github className="w-3.5 h-3.5" />
               Portfolio

@@ -425,7 +425,7 @@ export default function SendPage() {
       </div>
 
       {/* Step Content */}
-      <Card className="neo-border neo-shadow p-8 mb-8">
+      <Card className="neo-border shadow-neo p-4 sm:p-6 md:p-8 mb-6 md:mb-8">
         {currentStep === 1 && (
           <StepTemplate
             selected={selectedTemplate}
@@ -478,7 +478,7 @@ export default function SendPage() {
 
         {currentStep < 5 && (
           <Button
-            className="neo-button bg-neo-red text-white"
+            variant="neo"
             onClick={() => setCurrentStep(prev => prev + 1)}
             disabled={!canProceed()}
           >
@@ -513,14 +513,14 @@ function StepTemplate({
           </div>
         )}
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {templates.map(template => (
           <button
             key={template.id}
             onClick={() => onSelect(template.id)}
             className={`p-6 neo-border text-center transition-all relative ${
               selected === template.id
-                ? 'bg-neo-cream neo-shadow-green'
+                ? 'bg-neo-cream shadow-neo-green'
                 : 'bg-white hover:bg-gray-50'
             }`}
           >
@@ -542,7 +542,7 @@ function StepTemplate({
             {/* Sync badge - for local templates synced to Resend */}
             {template.resendTemplateId && !template.isResendCloud && (
               <div
-                className="absolute top-2 right-2 bg-green-500 text-white text-xs px-1.5 py-0.5 flex items-center gap-1 rounded-sm"
+                className="absolute top-2 right-2 bg-green-500 text-white text-xs px-1.5 py-0.5 flex items-center gap-1 neo-border-sm border-green-700"
                 title={`Synced: ${template.syncedAt ? new Date(template.syncedAt).toLocaleString() : 'Unknown'}`}
               >
                 <Cloud className="w-3 h-3" />
@@ -611,7 +611,7 @@ function StepRecipients({
             onClick={() => toggleContact(contact.id)}
             className={`w-full flex items-center gap-3 p-3 neo-border transition-all ${
               selected.includes(contact.id)
-                ? 'bg-neo-cream neo-shadow-green'
+                ? 'bg-neo-cream shadow-neo-green'
                 : 'bg-white hover:bg-gray-50'
             }`}
           >
@@ -1215,7 +1215,7 @@ function StepSend({
           </div>
         ) : (
           <Button
-            className="neo-button bg-neo-green text-white"
+            variant="neo-secondary"
             onClick={handleSend}
             disabled={!settings.resendApiKey || !settings.senderEmail}
           >
@@ -1276,7 +1276,7 @@ function StepSend({
 
       <div className="mt-6 text-center">
         <Link href="/">
-          <Button className="neo-button bg-neo-green text-white">
+          <Button variant="neo-secondary">
             Back to Dashboard
           </Button>
         </Link>

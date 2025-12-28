@@ -189,13 +189,13 @@ export default function ResendTemplatesPage() {
 
       {/* Error State */}
       {error && !loading && (
-        <Card className="neo-border neo-shadow p-8 text-center">
+        <Card className="neo-border shadow-neo p-8 text-center">
           <AlertCircle className="w-12 h-12 mx-auto mb-4 text-amber-500" />
           <h2 className="text-xl font-bold mb-2">Cannot Load Templates</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           {!apiKey && (
             <Link href="/settings">
-              <Button className="neo-button bg-neo-green text-white">
+              <Button variant="neo-secondary">
                 Configure API Key
               </Button>
             </Link>
@@ -205,7 +205,7 @@ export default function ResendTemplatesPage() {
 
       {/* Loading State */}
       {loading && (
-        <Card className="neo-border neo-shadow p-8 text-center">
+        <Card className="neo-border shadow-neo p-8 text-center">
           <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-gray-400" />
           <h2 className="text-xl font-bold mb-2">Loading Templates</h2>
           <p className="text-gray-600">Fetching templates from Resend...</p>
@@ -216,14 +216,14 @@ export default function ResendTemplatesPage() {
       {!loading && !error && (
         <>
           {templates.length === 0 ? (
-            <Card className="neo-border neo-shadow p-8 text-center">
+            <Card className="neo-border shadow-neo p-8 text-center">
               <Cloud className="w-12 h-12 mx-auto mb-4 text-gray-400" />
               <h2 className="text-xl font-bold mb-2">No Templates on Resend</h2>
               <p className="text-gray-600 mb-4">
                 You haven&apos;t synced any templates to Resend yet.
               </p>
               <Link href="/templates">
-                <Button className="neo-button bg-neo-green text-white">
+                <Button variant="neo-secondary">
                   Go to Templates
                 </Button>
               </Link>
@@ -236,7 +236,7 @@ export default function ResendTemplatesPage() {
               {templates.map((template) => (
                 <Card
                   key={template.id}
-                  className="neo-border neo-shadow p-4 flex items-center justify-between"
+                  className="neo-border shadow-neo p-4 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-neo-cream neo-border flex items-center justify-center">

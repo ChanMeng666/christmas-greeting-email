@@ -378,7 +378,7 @@ export default function TemplatesPage() {
             </Button>
           </Link>
           <Button
-            className="neo-button bg-neo-green text-white"
+            variant="neo-secondary"
             onClick={handleCreateTemplate}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -483,8 +483,8 @@ function FilterTab({
       {loading ? (
         <Loader2 className="w-3 h-3 animate-spin ml-1" />
       ) : (
-        <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-          active ? 'bg-white text-black' : 'bg-gray-200 text-gray-700'
+        <span className={`ml-2 px-2 py-0.5 text-xs font-bold ${
+          active ? 'bg-white text-black neo-border-sm' : 'bg-gray-200 text-gray-700 border border-gray-400'
         }`}>
           {count}
         </span>
@@ -508,7 +508,7 @@ function TemplateCard({
   const isCloud = !!template.isResendCloud
 
   return (
-    <Card className="neo-border neo-shadow overflow-hidden group">
+    <Card className="neo-border shadow-neo overflow-hidden group">
       {/* Thumbnail */}
       <div className={`${template.color} h-40 flex items-center justify-center relative`}>
         <span className="text-6xl">{template.thumbnail}</span>
@@ -543,7 +543,7 @@ function TemplateCard({
         {/* Hover Actions */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           <Link href={`/templates/${template.id}/edit`}>
-            <Button size="sm" className="neo-button bg-white text-black">
+            <Button size="sm" variant="neo-outline">
               <Edit className="w-4 h-4 mr-1" />
               Edit
             </Button>

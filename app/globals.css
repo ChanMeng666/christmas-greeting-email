@@ -63,37 +63,70 @@
 
 /* Neobrutalism 风格通用类 */
 @layer components {
+  /* 边框工具类 */
   .neo-border {
     @apply border-4 border-black;
   }
 
-  .neo-shadow {
-    box-shadow: 4px 4px 0px 0px #000000;
+  .neo-border-sm {
+    @apply border-2 border-black;
   }
 
-  .neo-shadow-lg {
-    box-shadow: 8px 8px 0px 0px #000000;
-  }
-
-  .neo-shadow-red {
-    box-shadow: 4px 4px 0px 0px #DC2626;
-  }
-
-  .neo-shadow-green {
-    box-shadow: 4px 4px 0px 0px #16A34A;
-  }
-
-  .neo-button {
-    @apply neo-border neo-shadow font-bold uppercase tracking-wide;
-    @apply hover:translate-x-1 hover:translate-y-1 hover:shadow-none;
-    @apply transition-all duration-150;
-  }
-
+  /* 复合组件类 - 使用 Tailwind shadow-neo 系列 */
   .neo-card {
-    @apply neo-border neo-shadow bg-white p-6;
+    @apply neo-border shadow-neo bg-white p-6;
   }
 
   .neo-input {
     @apply neo-border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neo-gold;
+  }
+
+  /* 小元素样式 (徽章、小按钮) */
+  .neo-badge {
+    @apply neo-border-sm shadow-neo-sm font-medium;
+    @apply hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none;
+    @apply transition-all duration-150;
+  }
+
+  /* 排版工具类 */
+  .neo-title-xl {
+    @apply text-4xl font-black uppercase tracking-tight;
+  }
+
+  .neo-title-lg {
+    @apply text-3xl font-black uppercase tracking-tight;
+  }
+
+  .neo-title-md {
+    @apply text-2xl font-black uppercase tracking-tight;
+  }
+
+  .neo-heading {
+    @apply text-xl font-bold;
+  }
+
+  .neo-subheading {
+    @apply text-lg font-bold;
+  }
+
+  .neo-label {
+    @apply text-sm font-bold uppercase tracking-wide;
+  }
+
+  .neo-body {
+    @apply text-base;
+  }
+
+  .neo-caption {
+    @apply text-xs uppercase tracking-wider text-gray-500;
+  }
+
+  /* 触摸友好工具类 */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  .safe-padding-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 }

@@ -19,7 +19,7 @@ export function HelpModal({ topic, onClose }: HelpModalProps) {
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto bg-white neo-border neo-shadow-lg">
+      <div className="relative w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto bg-white neo-border shadow-neo-lg">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b-4 border-black p-4 flex items-center justify-between">
           <h2 className="text-lg font-black uppercase tracking-tight pr-8">
@@ -118,7 +118,8 @@ export function HelpModal({ topic, onClose }: HelpModalProps) {
         <div className="sticky bottom-0 bg-white border-t-4 border-black p-4">
           <Button
             onClick={onClose}
-            className="neo-button bg-neo-red text-white w-full"
+            variant="neo"
+            className="w-full"
           >
             Got It
           </Button>

@@ -153,7 +153,7 @@ export function SetupProgress() {
                   className={cn(
                     'flex items-center gap-4 p-4 transition-all neo-border',
                     isPast && 'bg-green-50 border-neo-green',
-                    isCurrent && 'bg-neo-cream border-black neo-shadow cursor-pointer hover:translate-x-1 hover:translate-y-1 hover:shadow-none',
+                    isCurrent && 'bg-neo-cream border-black shadow-neo cursor-pointer hover:translate-x-1 hover:translate-y-1 hover:shadow-none',
                     isFuture && 'bg-gray-50 border-gray-200 opacity-60'
                   )}
                 >

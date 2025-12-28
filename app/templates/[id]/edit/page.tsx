@@ -715,7 +715,7 @@ export default function TemplateEditorPage() {
             Preview
           </Button>
           <Button
-            className="neo-button bg-neo-green text-white"
+            variant="neo-secondary"
             onClick={handleSave}
             disabled={saveStatus === 'saving'}
           >
@@ -815,7 +815,7 @@ export default function TemplateEditorPage() {
         {/* Center - Canvas */}
         <div className="flex-1 bg-gray-100 overflow-auto p-8">
           <div
-            className={`mx-auto bg-white neo-border neo-shadow ${
+            className={`mx-auto bg-white neo-border shadow-neo ${
               deviceMode === 'mobile' ? 'max-w-[375px]' : 'max-w-[600px]'
             }`}
           >
@@ -884,7 +884,7 @@ export default function TemplateEditorPage() {
       {/* Preview Modal */}
       {showPreview && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-8">
-          <div className="bg-white neo-border neo-shadow max-w-4xl w-full max-h-[90vh] flex flex-col">
+          <div className="bg-white neo-border shadow-neo max-w-4xl w-full max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b-4 border-black">
               <h3 className="font-bold text-lg">Email Preview</h3>
               <Button size="sm" variant="ghost" onClick={() => setShowPreview(false)}>
@@ -960,7 +960,7 @@ function BlockPreview({ block, theme }: { block: Block; theme: Theme }) {
       return (
         <div className="p-6 text-center">
           <button
-            className="neo-button text-white px-6 py-3 font-bold uppercase"
+            className="text-white px-6 py-3 font-bold uppercase border-4 border-black shadow-neo"
             style={{ backgroundColor: theme.secondaryColor }}
           >
             {(block.props.text as string) || 'Click Here'}

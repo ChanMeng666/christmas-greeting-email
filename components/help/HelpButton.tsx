@@ -32,8 +32,8 @@ export function HelpButton({ topic, size = 'sm', className }: HelpButtonProps) {
         type="button"
         onClick={() => setIsOpen(true)}
         className={cn(
-          'inline-flex items-center justify-center rounded-full',
-          'bg-gray-200 text-gray-600 font-bold',
+          'inline-flex items-center justify-center',
+          'bg-gray-200 text-gray-600 font-bold neo-border-sm',
           'hover:bg-neo-gold hover:text-white',
           'transition-colors duration-150',
           'focus:outline-none focus:ring-2 focus:ring-neo-gold focus:ring-offset-1',

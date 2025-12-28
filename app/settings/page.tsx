@@ -80,7 +80,7 @@ export default function SettingsPage() {
 
       <div className="space-y-6">
         {/* Resend API Configuration */}
-        <Card className="neo-border neo-shadow">
+        <Card className="neo-border shadow-neo">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <span className="w-8 h-8 bg-neo-red text-white flex items-center justify-center neo-border text-sm font-bold">
@@ -160,7 +160,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* Sender Information */}
-        <Card className="neo-border neo-shadow">
+        <Card className="neo-border shadow-neo">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <span className="w-8 h-8 bg-neo-green text-white flex items-center justify-center neo-border text-sm font-bold">
@@ -213,7 +213,8 @@ export default function SettingsPage() {
           <Button
             onClick={handleSave}
             disabled={isLoading}
-            className="neo-button bg-neo-red text-white px-8"
+            variant="neo"
+            className="px-8"
           >
             {isLoading ? (
               'Saving...'

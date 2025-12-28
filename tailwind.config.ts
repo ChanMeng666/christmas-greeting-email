@@ -58,10 +58,12 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       boxShadow: {
+        'neo-sm': '2px 2px 0px 0px #000000',
         'neo': '4px 4px 0px 0px #000000',
         'neo-lg': '8px 8px 0px 0px #000000',
         'neo-red': '4px 4px 0px 0px #DC2626',
         'neo-green': '4px 4px 0px 0px #16A34A',
+        'neo-gold': '4px 4px 0px 0px #F59E0B',
       },
     },
   },

@@ -52,7 +52,7 @@ export function WelcomeModal({ onGetStarted, onSkip }: WelcomeModalProps) {
 
       {/* Modal */}
       <div
-        className={`relative w-full max-w-lg mx-4 bg-white neo-border neo-shadow-lg p-8 transform transition-all duration-300 ${
+        className={`relative w-full max-w-lg mx-4 bg-white neo-border shadow-neo-lg p-8 transform transition-all duration-300 ${
           isAnimating ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
       >
@@ -114,7 +114,8 @@ export function WelcomeModal({ onGetStarted, onSkip }: WelcomeModalProps) {
           <div className="space-y-3">
             <Button
               onClick={handleGetStarted}
-              className="neo-button bg-neo-red text-white w-full py-6 text-lg font-bold"
+              variant="neo"
+              className="w-full py-6 text-lg font-bold"
             >
               Get Started
               <ArrowRight className="w-5 h-5 ml-2" />

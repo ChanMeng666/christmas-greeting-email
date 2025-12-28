@@ -12,9 +12,11 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+
+const SIDEBAR_COLLAPSED_KEY = 'email-platform-sidebar-collapsed'
 
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
@@ -28,10 +30,32 @@ export function Sidebar() {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
 
+  // Load collapsed state from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
+    if (saved) {
+      setCollapsed(JSON.parse(saved))
+    }
+  }, [])
+
+  const handleCollapse = () => {
+    const newValue = !collapsed
+    setCollapsed(newValue)
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, JSON.stringify(newValue))
+  }
+
+  // Check if path matches (supports nested routes)
+  const isPathActive = (href: string) => {
+    if (href === '/') {
+      return pathname === '/'
+    }
+    return pathname === href || pathname.startsWith(href + '/')
+  }
+
   return (
     <div
       className={cn(
-        'relative flex flex-col h-screen bg-white border-r-4 border-black transition-all duration-300',
+        'hidden md:flex relative flex-col h-screen bg-white border-r-4 border-black transition-all duration-300',
         collapsed ? 'w-20' : 'w-64'
       )}
     >
@@ -55,20 +79,27 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {navigation.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = isPathActive(item.href)
           return (
             <Link key={item.name} href={item.href}>
               <div
                 className={cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-none border-2 border-transparent transition-all',
+                  'relative flex items-center gap-3 px-4 py-3 border-4 border-transparent transition-all touch-target',
                   isActive
                     ? 'bg-neo-cream border-black shadow-neo font-bold'
                     : 'hover:bg-gray-100 hover:border-gray-300',
                   collapsed && 'justify-center px-2'
                 )}
               >
+                {/* Active indicator bar */}
+                <div
+                  className={cn(
+                    'absolute left-0 top-0 bottom-0 w-1 transition-all',
+                    isActive ? 'bg-neo-red' : 'bg-transparent'
+                  )}
+                />
                 <item.icon
                   className={cn(
                     'w-5 h-5 flex-shrink-0',
@@ -96,11 +127,8 @@ export function Sidebar() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setCollapsed(!collapsed)}
-          className={cn(
-            'w-full neo-border bg-gray-100 hover:bg-gray-200',
-            collapsed ? 'p-2' : 'p-2'
-          )}
+          onClick={handleCollapse}
+          className="w-full neo-border bg-gray-100 hover:bg-gray-200 touch-target"
         >
           {collapsed ? (
             <ChevronRight className="w-5 h-5" />
@@ -112,7 +140,7 @@ export function Sidebar() {
 
       {/* Version */}
       {!collapsed && (
-        <div className="px-4 pb-4 text-xs text-gray-400 uppercase">
+        <div className="px-4 pb-4 neo-caption">
           v2.0.0
         </div>
       )}

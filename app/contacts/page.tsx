@@ -334,7 +334,7 @@ export default function ContactsPage() {
             <HelpButton topic="resend-sync" />
           </div>
           <Button
-            className="neo-button bg-neo-green text-white"
+            variant="neo-secondary"
             onClick={() => setShowAddForm(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -384,7 +384,7 @@ export default function ContactsPage() {
 
       {/* Add Contact Form */}
       {showAddForm && (
-        <Card className="neo-border neo-shadow p-6 mb-6">
+        <Card className="neo-border shadow-neo p-6 mb-6">
           <h3 className="font-bold text-lg mb-4">Add New Contact</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <Input
@@ -409,7 +409,7 @@ export default function ContactsPage() {
           </div>
           <div className="flex gap-2">
             <Button
-              className="neo-button bg-neo-green text-white"
+              variant="neo-secondary"
               onClick={handleAddContact}
             >
               Add Contact
@@ -428,7 +428,7 @@ export default function ContactsPage() {
       {/* Edit Contact Modal */}
       {editingContact && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="neo-border neo-shadow p-6 w-full max-w-md bg-white">
+          <Card className="neo-border shadow-neo p-6 w-full max-w-md bg-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-lg">Edit Contact</h3>
               <Button
@@ -468,7 +468,8 @@ export default function ContactsPage() {
             </div>
             <div className="flex gap-2">
               <Button
-                className="neo-button bg-neo-green text-white flex-1"
+                variant="neo-secondary"
+                className="flex-1"
                 onClick={handleSaveEdit}
               >
                 <Check className="w-4 h-4 mr-2" />
@@ -487,16 +488,18 @@ export default function ContactsPage() {
       )}
 
       {/* Contacts List */}
-      <Card className="neo-border neo-shadow">
+      <Card className="neo-border shadow-neo">
         {contacts.length === 0 ? (
-          <div className="p-12 text-center">
-            <User className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-bold mb-2">No contacts yet</h3>
-            <p className="text-gray-600 mb-4">
+          <div className="p-8 sm:p-12 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-neo-cream neo-border flex items-center justify-center">
+              <User className="w-8 h-8 text-gray-500" />
+            </div>
+            <h3 className="neo-heading mb-2">No contacts yet</h3>
+            <p className="text-gray-600 mb-6">
               Add your first contact or import from CSV
             </p>
             <Button
-              className="neo-button bg-neo-green text-white"
+              variant="neo-secondary"
               onClick={() => setShowAddForm(true)}
             >
               <Plus className="w-4 h-4 mr-2" />
