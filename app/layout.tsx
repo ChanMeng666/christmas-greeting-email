@@ -5,16 +5,91 @@ import { Sidebar } from '@/components/shared/Sidebar'
 import { MobileHeader } from '@/components/shared/MobileHeader'
 import { MobileNavProvider } from '@/contexts/MobileNavContext'
 import { Toaster } from '@/components/ui/toaster'
+import { JsonLd } from '@/components/geo/JsonLd'
+import {
+  getOrganizationSchema,
+  getWebApplicationSchema,
+  getFAQSchema,
+} from '@/lib/geo/schemas'
 
 const inter = Inter({ subsets: ['latin'] })
 
+const baseUrl = 'https://christmas-greeting-email.vercel.app'
+
 export const metadata: Metadata = {
-  title: 'SendJoy - Email Template Platform',
-  description: 'Create and send beautiful email templates for holidays, marketing, and newsletters',
+  metadataBase: new URL(baseUrl),
+  title: {
+    default: 'SendJoy - Visual Email Template Platform | Free Email Builder',
+    template: '%s | SendJoy',
+  },
+  description:
+    'Create and send beautiful email templates for holidays, marketing, and newsletters. Free visual drag-and-drop editor with Neobrutalism design. No coding required. Open-source.',
+  keywords: [
+    'email templates',
+    'email builder',
+    'email editor',
+    'newsletter creator',
+    'marketing emails',
+    'holiday greeting emails',
+    'Christmas email template',
+    'New Year email template',
+    'free email template',
+    'drag-and-drop email builder',
+    'neobrutalism design',
+    'resend api',
+    'react email',
+    'visual email editor',
+    'no-code email',
+  ],
+  authors: [{ name: 'Chan Meng', url: 'https://chanmeng.live/' }],
+  creator: 'Chan Meng',
+  publisher: 'SendJoy',
+  applicationName: 'SendJoy',
+  generator: 'Next.js',
+  referrer: 'origin-when-cross-origin',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: '/christmas-greeting-email-logo.svg',
     apple: '/christmas-greeting-email-logo.svg',
   },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: baseUrl,
+    siteName: 'SendJoy',
+    title: 'SendJoy - Visual Email Template Platform',
+    description:
+      'Create beautiful email templates with drag-and-drop. Free, open-source, no coding required.',
+    images: [
+      {
+        url: `${baseUrl}/christmas-greeting-email-logo.svg`,
+        width: 512,
+        height: 512,
+        alt: 'SendJoy Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SendJoy - Visual Email Template Platform',
+    description: 'Create beautiful email templates with drag-and-drop. Free, open-source.',
+    images: [`${baseUrl}/christmas-greeting-email-logo.svg`],
+    creator: '@ChanMeng666',
+  },
+  alternates: {
+    canonical: baseUrl,
+  },
+  category: 'technology',
 }
 
 export default function RootLayout({
@@ -24,6 +99,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <JsonLd
+          data={[getOrganizationSchema(), getWebApplicationSchema(), getFAQSchema()]}
+        />
+      </head>
       <body className={inter.className}>
         <MobileNavProvider>
           <div className="flex h-screen overflow-hidden">
