@@ -16,7 +16,7 @@ export function getOrganizationSchema() {
     founder: {
       '@type': 'Person',
       name: 'Chan Meng',
-      url: 'https://chanmeng.live/',
+      url: 'https://chanmeng.org/',
       sameAs: [
         'https://github.com/ChanMeng666',
         'https://www.linkedin.com/in/chanmeng666/',
@@ -66,7 +66,7 @@ export function getWebApplicationSchema() {
     creator: {
       '@type': 'Person',
       name: 'Chan Meng',
-      url: 'https://chanmeng.live/',
+      url: 'https://chanmeng.org/',
     },
     keywords:
       'email templates, email builder, newsletter creator, marketing emails, holiday greetings, neobrutalism design, resend api, react email, free email editor',

@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     'visual email editor',
     'no-code email',
   ],
-  authors: [{ name: 'Chan Meng', url: 'https://chanmeng.live/' }],
+  authors: [{ name: 'Chan Meng', url: 'https://chanmeng.org/' }],
   creator: 'Chan Meng',
   publisher: 'SendJoy',
   applicationName: 'SendJoy',

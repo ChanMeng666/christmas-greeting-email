@@ -75,4 +75,4 @@ Created by Chan Meng. MIT License. Open source on GitHub.
 
 - Live Demo: https://sendjoy.chanmeng-dev.workers.dev/
 - GitHub: https://github.com/ChanMeng666/send-joy
-- Author: https://chanmeng.live/
+- Author: https://chanmeng.org/
