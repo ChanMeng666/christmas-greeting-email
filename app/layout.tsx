@@ -72,10 +72,10 @@ export const metadata: Metadata = {
       'Create beautiful email templates with drag-and-drop. Free, open-source, no coding required.',
     images: [
       {
-        url: `${baseUrl}/send-joy-logo.svg`,
-        width: 512,
-        height: 512,
-        alt: 'SendJoy Logo',
+        url: `${baseUrl}/og-cover.png`,
+        width: 1200,
+        height: 630,
+        alt: 'SendJoy — drag-and-drop email templates, free and open-source',
       },
     ],
   },
@@ -83,7 +83,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'SendJoy - Visual Email Template Platform',
     description: 'Create beautiful email templates with drag-and-drop. Free, open-source.',
-    images: [`${baseUrl}/send-joy-logo.svg`],
+    images: [`${baseUrl}/og-cover.png`],
     creator: '@ChanMeng666',
   },
   alternates: {
